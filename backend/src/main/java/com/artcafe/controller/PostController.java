@@ -21,18 +21,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -93,7 +87,6 @@ public class PostController {
         Post post = new Post();
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
-        post.setImageUrl(postDto.getImageUrl());
         post.setCreatedAt(LocalDateTime.now());
         post.setUser(user);
         post.setUserId(user.getId());
@@ -101,29 +94,6 @@ public class PostController {
         Post savedPost = postRepository.save(post);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(savedPost));
-    }
-    
-    @PostMapping("/upload-image")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path uploadDir = Paths.get("uploads/images/posts");
-            
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
-            
-            Path filePath = uploadDir.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath);
-            
-            Map<String, String> response = new HashMap<>();
-            response.put("imageUrl", "/images/posts/" + fileName);
-            
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not upload file");
-        }
     }
     
     @PutMapping("/{id}")
@@ -141,7 +111,6 @@ public class PostController {
         
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
-        post.setImageUrl(postDto.getImageUrl());
         post.setUpdatedAt(LocalDateTime.now());
         
         Post updatedPost = postRepository.save(post);
@@ -214,7 +183,6 @@ public class PostController {
         dto.setId(post.getId());
         dto.setTitle(post.getTitle());
         dto.setContent(post.getContent());
-        dto.setImageUrl(post.getImageUrl());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
         

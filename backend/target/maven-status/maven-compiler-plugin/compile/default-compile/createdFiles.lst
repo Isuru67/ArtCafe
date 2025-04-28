@@ -9,7 +9,6 @@ com\artcafe\model\Comment.class
 com\artcafe\ArtCafeApplication.class
 com\artcafe\controller\CommentController.class
 com\artcafe\dto\auth\SignupRequest.class
-com\artcafe\model\Like$UniquePostUserConstraint.class
 com\artcafe\repository\LikeRepository.class
 com\artcafe\repository\PostRepository.class
 com\artcafe\dto\UserDto.class

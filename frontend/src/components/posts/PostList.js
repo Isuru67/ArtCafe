@@ -12,29 +12,57 @@ const PostList = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false); // New state to track "load more" loading state
   
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    fetchPosts();
+    // Initial load of posts
+    const initialLoad = async () => {
+      try {
+        setLoading(true);
+        const response = await getPosts(0); // Always start with page 0
+        
+        if (response.posts.length === 0) {
+          setHasMore(false);
+        } else {
+          setPosts(response.posts);
+          setPage(1); // Set to 1 for next page load
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        setError('Failed to load posts. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    initialLoad();
   }, []);
 
-  const fetchPosts = async () => {
+  const fetchMorePosts = async () => {
+    if (loadingMore) return;
+    
     try {
-      setLoading(true);
+      setLoadingMore(true);
       const response = await getPosts(page);
       
       if (response.posts.length === 0) {
         setHasMore(false);
       } else {
-        setPosts(prevPosts => [...prevPosts, ...response.posts]);
+        // Ensure no duplicates by checking IDs
+        const newPosts = response.posts.filter(
+          newPost => !posts.some(existingPost => existingPost.id === newPost.id)
+        );
+        
+        setPosts(prevPosts => [...prevPosts, ...newPosts]);
         setPage(prevPage => prevPage + 1);
       }
       
-      setLoading(false);
+      setLoadingMore(false);
     } catch (error) {
-      setError('Failed to load posts. Please try again later.');
-      setLoading(false);
+      setError('Failed to load more posts. Please try again later.');
+      setLoadingMore(false);
     }
   };
 
@@ -167,10 +195,10 @@ const PostList = () => {
         <div className="text-center mt-4 mb-5">
           <Button 
             variant="outline-primary" 
-            onClick={fetchPosts} 
-            disabled={loading}
+            onClick={fetchMorePosts} 
+            disabled={loadingMore}
           >
-            {loading ? (
+            {loadingMore ? (
               <>
                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
                 <span className="ms-2">Loading...</span>

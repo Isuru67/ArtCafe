@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Form, Button, Card, Container, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaUpload, FaImage } from 'react-icons/fa';
-import { getPostById, updatePost, uploadPostImage } from '../../services/postService';
+import { getPostById, updatePost } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
-import { IMAGE_BASE_URL } from '../../config';
 
 const EditPost = () => {
   const { id } = useParams();
@@ -13,14 +11,10 @@ const EditPost = () => {
   
   const [postData, setPostData] = useState({
     title: '',
-    content: '',
-    imageUrl: ''
+    content: ''
   });
   
   const [originalPost, setOriginalPost] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -43,16 +37,10 @@ const EditPost = () => {
       
       setPostData({
         title: data.title,
-        content: data.content,
-        imageUrl: data.imageUrl || ''
+        content: data.content
       });
       
       setOriginalPost(data);
-      
-      if (data.imageUrl) {
-        setPreviewUrl(`${IMAGE_BASE_URL}${data.imageUrl}`);
-      }
-      
       setLoading(false);
     } catch (error) {
       setError('Failed to load post. The post may have been deleted or is unavailable.');
@@ -68,57 +56,8 @@ const EditPost = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setError('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
-      return;
-    }
-    
-    setImageFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setError('');
-  };
-
-  const handleUpload = async () => {
-    if (!imageFile) return;
-    
-    try {
-      setUploading(true);
-      setError('');
-      
-      const response = await uploadPostImage(imageFile);
-      
-      setPostData(prevData => ({
-        ...prevData,
-        imageUrl: response.imageUrl
-      }));
-      
-      setUploading(false);
-    } catch (error) {
-      setError('Failed to upload image. Please try again.');
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // If there's a new image selected but not uploaded yet
-    if (imageFile && postData.imageUrl === originalPost.imageUrl) {
-      setError('Please upload the new image before submitting');
-      return;
-    }
     
     try {
       setSubmitting(true);
@@ -176,55 +115,6 @@ const EditPost = () => {
                 placeholder="Describe your artwork, share your inspiration, or tell the story behind it."
                 required
               />
-            </Form.Group>
-            
-            <Form.Group className="mb-4">
-              <Form.Label>Image</Form.Label>
-              <div className="d-flex align-items-center mb-3">
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="me-3"
-                />
-                <Button
-                  variant="secondary"
-                  onClick={handleUpload}
-                  disabled={!imageFile || uploading || (imageFile && postData.imageUrl !== originalPost.imageUrl)}
-                >
-                  {uploading ? (
-                    <>
-                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                      <span className="ms-2">Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaUpload className="me-2" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              {previewUrl && (
-                <div className="position-relative mb-3">
-                  <div className="ratio ratio-16x9" style={{ maxHeight: '400px' }}>
-                    <img 
-                      src={previewUrl} 
-                      alt="Preview" 
-                      className="rounded object-fit-contain"
-                    />
-                  </div>
-                  {imageFile && postData.imageUrl !== originalPost.imageUrl && (
-                    <div className="position-absolute top-0 end-0 bg-success text-white px-2 py-1 rounded-pill m-2">
-                      <FaImage className="me-1" /> Uploaded
-                    </div>
-                  )}
-                </div>
-              )}
-              <Form.Text className="text-muted">
-                Upload an image of your artwork. Max size: 5MB. Supported formats: JPEG, PNG, GIF, WEBP.
-              </Form.Text>
             </Form.Group>
             
             <div className="d-flex justify-content-between">
