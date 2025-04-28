@@ -44,8 +44,9 @@ const Login = () => {
     
     try {
       console.log('Attempting login with:', credentials); // Debug log
-      await login(credentials.usernameOrEmail, credentials.password);
-      navigate('/'); // Redirect to home page after successful login
+      const userInfo = await login(credentials.usernameOrEmail, credentials.password);
+      // Redirect to username-based URL after successful login
+      navigate(`/${userInfo.username}`);
     } catch (error) {
       console.error('Login error:', error);
       setError(error.response?.data?.message || error.message || 'Login failed. Please check your credentials and try again.');

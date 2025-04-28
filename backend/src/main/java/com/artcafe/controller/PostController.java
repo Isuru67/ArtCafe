@@ -46,6 +46,7 @@ public class PostController {
     private LikeRepository likeRepository;
     
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -67,7 +68,37 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
     
+    /**
+     * Get posts by username
+     */
+    @GetMapping("/byUsername/{username}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> getPostsByUsername(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Post> postPage = postRepository.findByUserId(user.getId(), pageable);
+        
+        List<PostDto> posts = postPage.getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("posts", posts);
+        response.put("currentPage", postPage.getNumber());
+        response.put("totalItems", postPage.getTotalElements());
+        response.put("totalPages", postPage.getTotalPages());
+        
+        return ResponseEntity.ok(response);
+    }
+    
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PostDto> getPostById(@PathVariable String id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));

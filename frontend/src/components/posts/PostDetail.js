@@ -24,16 +24,26 @@ const PostDetail = () => {
   const [hasMoreComments, setHasMoreComments] = useState(true);
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please login to view post details.' } });
+      return;
+    }
+    
     fetchPost();
     fetchComments();
-  }, [id]);
+  }, [id, currentUser, navigate]);
 
   const fetchPost = async () => {
     try {
       const data = await getPostById(id);
       setPost(data);
     } catch (error) {
-      setError('Error loading post. The post may have been deleted or is unavailable.');
+      if (error.response && error.response.status === 401) {
+        navigate('/login', { state: { message: 'Your session has expired. Please login again.' } });
+      } else {
+        setError('Error loading post. The post may have been deleted or is unavailable.');
+      }
     } finally {
       setLoading(false);
     }
@@ -171,6 +181,20 @@ const PostDetail = () => {
         <p>{error || 'Post not found'}</p>
         <div className="d-flex justify-content-end">
           <Button variant="outline-danger" onClick={() => navigate('/')}>Back to Home</Button>
+        </div>
+      </Alert>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Alert variant="info" className="my-5 text-center">
+        <Alert.Heading>Login Required</Alert.Heading>
+        <p>You need to be logged in to view this post.</p>
+        <div className="d-grid gap-2 col-6 mx-auto">
+          <Button as={Link} to="/login" variant="primary">
+            Login to Continue
+          </Button>
         </div>
       </Alert>
     );

@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Form, Button, Card, Container, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createPost } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -15,6 +15,16 @@ const CreatePost = () => {
   
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { username } = useParams();
+  
+  // Verify the current user matches the username in the URL
+  useEffect(() => {
+    if (currentUser && username !== currentUser.username) {
+      setError("You don't have permission to create posts for this user");
+      // Optionally redirect after a delay
+      setTimeout(() => navigate(`/${currentUser.username}`), 3000);
+    }
+  }, [currentUser, username, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,13 +41,19 @@ const CreatePost = () => {
       setSubmitting(true);
       setError('');
       
-      const newPost = await createPost(postData);
+      // Pass username to ensure the post is created for the correct user
+      const newPost = await createPost(postData, username);
       
       navigate(`/posts/${newPost.id}`);
     } catch (error) {
       setError('Failed to create post. Please try again.');
       setSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    // Navigate back to the user's profile page
+    navigate(`/${username}`);
   };
 
   return (
@@ -59,6 +75,7 @@ const CreatePost = () => {
                 onChange={handleChange}
                 placeholder="Give your artwork a title"
                 required
+                disabled={!!error}
               />
             </Form.Group>
             
@@ -72,20 +89,21 @@ const CreatePost = () => {
                 onChange={handleChange}
                 placeholder="Describe your artwork, share your inspiration, or tell the story behind it."
                 required
+                disabled={!!error}
               />
             </Form.Group>
             
             <div className="d-flex justify-content-between">
               <Button 
                 variant="secondary" 
-                onClick={() => navigate('/')}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
               <Button 
                 variant="primary" 
                 type="submit" 
-                disabled={submitting || !postData.title || !postData.content}
+                disabled={submitting || !postData.title || !postData.content || !!error}
               >
                 {submitting ? 'Creating...' : 'Create Post'}
               </Button>

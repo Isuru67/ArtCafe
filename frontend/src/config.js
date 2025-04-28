@@ -25,6 +25,7 @@ export const API_URLS = {
   
   // Post endpoints
   getPosts: `${POSTS_BASE_URL}`,
+  getPostsByUsername: (username) => `${POSTS_BASE_URL}/byUsername/${username}`,
   getPostById: (id) => `${POSTS_BASE_URL}/${id}`,
   createPost: `${POSTS_BASE_URL}`,
   updatePost: (id) => `${POSTS_BASE_URL}/${id}`,

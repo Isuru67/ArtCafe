@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Row, Col, Card, Button, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { FaHeart, FaRegHeart, FaComment } from 'react-icons/fa';
+import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaHeart, FaRegHeart, FaComment, FaSignInAlt } from 'react-icons/fa';
 import { getPosts, toggleLike } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 import { IMAGE_BASE_URL } from '../../config';
@@ -12,33 +12,45 @@ const PostList = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false); // New state to track "load more" loading state
+  const [loadingMore, setLoadingMore] = useState(false);
   
   const { currentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Initial load of posts
+    // Check if user is authenticated
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please login to view posts.' } });
+      return;
+    }
+    
+    // Initial load of posts if user is authenticated
     const initialLoad = async () => {
       try {
         setLoading(true);
-        const response = await getPosts(0); // Always start with page 0
+        const response = await getPosts(0);
         
         if (response.posts.length === 0) {
           setHasMore(false);
         } else {
           setPosts(response.posts);
-          setPage(1); // Set to 1 for next page load
+          setPage(1);
         }
         
         setLoading(false);
       } catch (error) {
-        setError('Failed to load posts. Please try again later.');
-        setLoading(false);
+        // Check if error is due to authentication
+        if (error.response && error.response.status === 401) {
+          navigate('/login', { state: { message: 'Your session has expired. Please login again.' } });
+        } else {
+          setError('Failed to load posts. Please try again later.');
+          setLoading(false);
+        }
       }
     };
     
     initialLoad();
-  }, []);
+  }, [currentUser, navigate]);
 
   const fetchMorePosts = async () => {
     if (loadingMore) return;
@@ -170,28 +182,45 @@ const PostList = () => {
         <div className="alert alert-danger text-center">{error}</div>
       )}
       
-      <Row>
-        {posts.length === 0 && !loading ? (
-          <Col>
-            <div className="text-center py-5">
-              <h3>No posts yet</h3>
-              {currentUser && (
-                <p>
-                  <Link to="/create-post" className="btn btn-primary mt-3">
-                    Create the first post
-                  </Link>
-                </p>
-              )}
-            </div>
-          </Col>
-        ) : (
-          <Col lg={8} className="mx-auto">
-            {posts.map(post => renderPostCard(post))}
-          </Col>
-        )}
-      </Row>
+      {!currentUser ? (
+        <div className="text-center py-5">
+          <Alert variant="info">
+            <h4>Login Required</h4>
+            <p>You need to be logged in to view posts.</p>
+            <Button 
+              as={Link} 
+              to="/login" 
+              variant="primary"
+              className="mt-3"
+            >
+              <FaSignInAlt className="me-2" /> Login to Continue
+            </Button>
+          </Alert>
+        </div>
+      ) : (
+        <Row>
+          {posts.length === 0 && !loading ? (
+            <Col>
+              <div className="text-center py-5">
+                <h3>No posts yet</h3>
+                {currentUser && (
+                  <p>
+                    <Link to="/create-post" className="btn btn-primary mt-3">
+                      Create the first post
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </Col>
+          ) : (
+            <Col lg={8} className="mx-auto">
+              {posts.map(post => renderPostCard(post))}
+            </Col>
+          )}
+        </Row>
+      )}
       
-      {hasMore && (
+      {hasMore && currentUser && (
         <div className="text-center mt-4 mb-5">
           <Button 
             variant="outline-primary" 

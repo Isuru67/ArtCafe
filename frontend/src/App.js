@@ -22,6 +22,10 @@ import Profile from './components/user/Profile';
 import EditProfile from './components/user/EditProfile';
 import AccountSettings from './components/user/AccountSettings';
 import UserPublicProfile from './components/user/UserPublicProfile';
+import UserLandingPage from './components/user/UserLandingPage';
+
+// Home Component
+import HomePage from './components/home/HomePage';
 
 // PrivateRoute component to protect routes that require authentication
 const PrivateRoute = ({ children }) => {
@@ -46,18 +50,13 @@ function AppContent() {
         <Container>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<PostList />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/users/:id" element={<UserPublicProfile />} />
             
             {/* Protected Routes */}
-            <Route path="/create-post" element={
-              <PrivateRoute>
-                <CreatePost />
-              </PrivateRoute>
-            } />
             <Route path="/edit-post/:id" element={
               <PrivateRoute>
                 <EditPost />
@@ -76,6 +75,20 @@ function AppContent() {
             <Route path="/account-settings" element={
               <PrivateRoute>
                 <AccountSettings />
+              </PrivateRoute>
+            } />
+            
+            {/* Add username-specific create post route */}
+            <Route path="/:username/create-post" element={
+              <PrivateRoute>
+                <CreatePost />
+              </PrivateRoute>
+            } />
+            
+            {/* Username route - must be after specific routes */}
+            <Route path="/:username" element={
+              <PrivateRoute>
+                <UserLandingPage />
               </PrivateRoute>
             } />
             
