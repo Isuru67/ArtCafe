@@ -1,25 +1,30 @@
-import React, { useState, useContext } from 'react';
-import { Form, Button, Card, Container, Alert, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { FaUpload, FaImage } from 'react-icons/fa';
-import { createPost, uploadPostImage } from '../../services/postService';
+import React, { useState, useContext, useEffect } from 'react';
+import { Form, Button, Card, Container, Alert } from 'react-bootstrap';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createPost } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 
 const CreatePost = () => {
   const [postData, setPostData] = useState({
     title: '',
-    content: '',
-    imageUrl: ''
+    content: ''
   });
   
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { username } = useParams();
+  
+  // Verify the current user matches the username in the URL
+  useEffect(() => {
+    if (currentUser && username !== currentUser.username) {
+      setError("You don't have permission to create posts for this user");
+      // Optionally redirect after a delay
+      setTimeout(() => navigate(`/${currentUser.username}`), 3000);
+    }
+  }, [currentUser, username, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,69 +34,26 @@ const CreatePost = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setError('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
-      return;
-    }
-    
-    setImageFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setError('');
-  };
-
-  const handleUpload = async () => {
-    if (!imageFile) return;
-    
-    try {
-      setUploading(true);
-      setError('');
-      
-      const response = await uploadPostImage(imageFile);
-      
-      setPostData(prevData => ({
-        ...prevData,
-        imageUrl: response.imageUrl
-      }));
-      
-      setUploading(false);
-    } catch (error) {
-      setError('Failed to upload image. Please try again.');
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // If there's an image selected but not uploaded yet
-    if (imageFile && !postData.imageUrl) {
-      setError('Please upload the image before submitting');
-      return;
-    }
     
     try {
       setSubmitting(true);
       setError('');
       
-      const newPost = await createPost(postData);
+      // Pass username to ensure the post is created for the correct user
+      const newPost = await createPost(postData, username);
       
-      navigate(`/posts/${newPost.id}`);
+      navigate(`/${username}`);
     } catch (error) {
       setError('Failed to create post. Please try again.');
       setSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    // Navigate back to the user's profile page
+    navigate(`/${username}`);
   };
 
   return (
@@ -113,6 +75,7 @@ const CreatePost = () => {
                 onChange={handleChange}
                 placeholder="Give your artwork a title"
                 required
+                disabled={!!error}
               />
             </Form.Group>
             
@@ -126,69 +89,21 @@ const CreatePost = () => {
                 onChange={handleChange}
                 placeholder="Describe your artwork, share your inspiration, or tell the story behind it."
                 required
+                disabled={!!error}
               />
-            </Form.Group>
-            
-            <Form.Group className="mb-4">
-              <Form.Label>Image</Form.Label>
-              <div className="d-flex align-items-center mb-3">
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="me-3"
-                />
-                <Button
-                  variant="secondary"
-                  onClick={handleUpload}
-                  disabled={!imageFile || uploading || postData.imageUrl}
-                >
-                  {uploading ? (
-                    <>
-                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                      <span className="ms-2">Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaUpload className="me-2" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              {previewUrl && (
-                <div className="position-relative mb-3">
-                  <div className="ratio ratio-16x9" style={{ maxHeight: '400px' }}>
-                    <img 
-                      src={previewUrl} 
-                      alt="Preview" 
-                      className="rounded object-fit-contain"
-                    />
-                  </div>
-                  {postData.imageUrl && (
-                    <div className="position-absolute top-0 end-0 bg-success text-white px-2 py-1 rounded-pill m-2">
-                      <FaImage className="me-1" /> Uploaded
-                    </div>
-                  )}
-                </div>
-              )}
-              <Form.Text className="text-muted">
-                Upload an image of your artwork. Max size: 5MB. Supported formats: JPEG, PNG, GIF, WEBP.
-              </Form.Text>
             </Form.Group>
             
             <div className="d-flex justify-content-between">
               <Button 
                 variant="secondary" 
-                onClick={() => navigate('/')}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
               <Button 
                 variant="primary" 
                 type="submit" 
-                disabled={submitting || !postData.title || !postData.content}
+                disabled={submitting || !postData.title || !postData.content || !!error}
               >
                 {submitting ? 'Creating...' : 'Create Post'}
               </Button>

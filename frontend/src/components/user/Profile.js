@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Button, Spinner, Alert, Tabs, Tab } from 're
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEdit, FaHeart, FaRegHeart, FaComment } from 'react-icons/fa';
 import { AuthContext } from '../../context/AuthContext';
-import { getPosts, toggleLike } from '../../services/postService';
+import { getPostsByUsername, toggleLike } from '../../services/postService';
 import { IMAGE_BASE_URL } from '../../config';
 
 const Profile = () => {
@@ -15,6 +15,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [loadedPostIds, setLoadedPostIds] = useState(new Set()); // Track loaded post IDs
   
   useEffect(() => {
     if (!currentUser) {
@@ -22,27 +23,50 @@ const Profile = () => {
       return;
     }
     
+    // Reset state
+    setUserPosts([]);
+    setPage(0);
+    setHasMore(true);
+    setLoading(true);
+    setLoadedPostIds(new Set());
+    
     fetchUserPosts();
-  }, [currentUser]);
+  }, [currentUser, navigate]);
   
   const fetchUserPosts = async () => {
+    if (!currentUser) return;
+    
     try {
       setLoading(true);
-      const response = await getPosts(page); // Need to filter by user
+      const response = await getPostsByUsername(currentUser.username, page);
       
-      // Filter posts by current user's ID
-      const filteredPosts = response.posts.filter(post => post.user.id === currentUser.id);
-      
-      if (filteredPosts.length === 0) {
+      if (!response.posts || response.posts.length === 0) {
         setHasMore(false);
       } else {
-        setUserPosts(prevPosts => [...prevPosts, ...filteredPosts]);
-        setPage(prevPage => prevPage + 1);
+        // Filter out any posts we've already loaded (prevent duplicates)
+        const newPosts = response.posts.filter(post => !loadedPostIds.has(post.id));
+        
+        // If no new posts were returned, we've reached the end
+        if (newPosts.length === 0) {
+          setHasMore(false);
+        } else {
+          // Add new posts to state and update our tracking of loaded post IDs
+          setUserPosts(prevPosts => [...prevPosts, ...newPosts]);
+          
+          // Update the set of loaded post IDs
+          const updatedLoadedIds = new Set(loadedPostIds);
+          newPosts.forEach(post => updatedLoadedIds.add(post.id));
+          setLoadedPostIds(updatedLoadedIds);
+          
+          // Increment page for next load
+          setPage(prevPage => prevPage + 1);
+        }
       }
-      
-      setLoading(false);
     } catch (error) {
+      console.error("Error fetching posts:", error);
       setError('Failed to load posts. Please try again later.');
+      setHasMore(false);
+    } finally {
       setLoading(false);
     }
   };

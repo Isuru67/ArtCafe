@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaHeart, FaRegHeart, FaComment } from 'react-icons/fa';
 import { getUserById } from '../../services/userService';
-import { getPosts, toggleLike } from '../../services/postService';
+import { getPostsByUsername, toggleLike } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 import { IMAGE_BASE_URL } from '../../config';
 
 const UserPublicProfile = () => {
   const { id } = useParams();
   const { currentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
   
   const [user, setUser] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
@@ -17,41 +18,80 @@ const UserPublicProfile = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [loadedPostIds, setLoadedPostIds] = useState(new Set()); // Track loaded post IDs
   
   useEffect(() => {
+    // Check if user is authenticated
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please login to view user profiles.' } });
+      return;
+    }
+    
+    // Reset state when user ID changes
+    setUserPosts([]);
+    setPage(0);
+    setHasMore(true);
+    setLoading(true);
+    setLoadedPostIds(new Set());
+    
     fetchUserProfile();
-    fetchUserPosts();
-  }, [id]);
+  }, [id, currentUser, navigate]);
   
   const fetchUserProfile = async () => {
     try {
       const userData = await getUserById(id);
       setUser(userData);
+      
+      // Now that we have the username, we can fetch their posts
+      fetchUserPosts(userData.username);
     } catch (error) {
       setError('Failed to load user profile. The user may not exist.');
+      setLoading(false);
     }
   };
   
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = async (username) => {
+    if (!username) return;
+    
     try {
-      setLoading(true);
-      const response = await getPosts(page);
+      const response = await getPostsByUsername(username, page);
       
-      // Filter posts by the user ID from URL
-      const filteredPosts = response.posts.filter(post => post.user.id.toString() === id);
-      
-      if (filteredPosts.length === 0) {
+      if (!response.posts || response.posts.length === 0) {
         setHasMore(false);
       } else {
-        setUserPosts(prevPosts => [...prevPosts, ...filteredPosts]);
-        setPage(prevPage => prevPage + 1);
+        // Filter out any posts we've already loaded (prevent duplicates)
+        const newPosts = response.posts.filter(post => !loadedPostIds.has(post.id));
+        
+        // If no new posts were returned, we've reached the end
+        if (newPosts.length === 0) {
+          setHasMore(false);
+        } else {
+          // Add new posts to state and update our tracking of loaded post IDs
+          setUserPosts(prevPosts => [...prevPosts, ...newPosts]);
+          
+          // Update the set of loaded post IDs
+          const updatedLoadedIds = new Set(loadedPostIds);
+          newPosts.forEach(post => updatedLoadedIds.add(post.id));
+          setLoadedPostIds(updatedLoadedIds);
+          
+          // Increment page for next load
+          setPage(prevPage => prevPage + 1);
+        }
       }
       
       setLoading(false);
     } catch (error) {
+      console.error("Error fetching posts:", error);
       setError('Failed to load posts. Please try again later.');
       setLoading(false);
+      setHasMore(false);
     }
+  };
+  
+  // Function to handle loading more posts
+  const loadMorePosts = () => {
+    if (!user || !user.username) return;
+    fetchUserPosts(user.username);
   };
   
   const handleLikeToggle = async (postId) => {
@@ -82,6 +122,18 @@ const UserPublicProfile = () => {
       <Container className="py-5">
         <Alert variant="danger">
           {error}
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Container className="py-5">
+        <Alert variant="info" className="text-center">
+          <h4>Login Required</h4>
+          <p>You need to be logged in to view user profiles.</p>
+          <Button as={Link} to="/login" variant="primary">Login to Continue</Button>
         </Alert>
       </Container>
     );
@@ -187,7 +239,7 @@ const UserPublicProfile = () => {
           <div className="text-center mt-4">
             <Button 
               variant="outline-primary" 
-              onClick={fetchUserPosts} 
+              onClick={loadMorePosts} 
               disabled={loading}
             >
               {loading ? 'Loading...' : 'Load More'}

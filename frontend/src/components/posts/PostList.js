@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Row, Col, Card, Button, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { FaHeart, FaRegHeart, FaComment } from 'react-icons/fa';
+import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaHeart, FaRegHeart, FaComment, FaSignInAlt } from 'react-icons/fa';
 import { getPosts, toggleLike } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 import { IMAGE_BASE_URL } from '../../config';
@@ -12,29 +12,69 @@ const PostList = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   
   const { currentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    // Check if user is authenticated
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please login to view posts.' } });
+      return;
+    }
+    
+    // Initial load of posts if user is authenticated
+    const initialLoad = async () => {
+      try {
+        setLoading(true);
+        const response = await getPosts(0);
+        
+        if (response.posts.length === 0) {
+          setHasMore(false);
+        } else {
+          setPosts(response.posts);
+          setPage(1);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        // Check if error is due to authentication
+        if (error.response && error.response.status === 401) {
+          navigate('/login', { state: { message: 'Your session has expired. Please login again.' } });
+        } else {
+          setError('Failed to load posts. Please try again later.');
+          setLoading(false);
+        }
+      }
+    };
+    
+    initialLoad();
+  }, [currentUser, navigate]);
 
-  const fetchPosts = async () => {
+  const fetchMorePosts = async () => {
+    if (loadingMore) return;
+    
     try {
-      setLoading(true);
+      setLoadingMore(true);
       const response = await getPosts(page);
       
       if (response.posts.length === 0) {
         setHasMore(false);
       } else {
-        setPosts(prevPosts => [...prevPosts, ...response.posts]);
+        // Ensure no duplicates by checking IDs
+        const newPosts = response.posts.filter(
+          newPost => !posts.some(existingPost => existingPost.id === newPost.id)
+        );
+        
+        setPosts(prevPosts => [...prevPosts, ...newPosts]);
         setPage(prevPage => prevPage + 1);
       }
       
-      setLoading(false);
+      setLoadingMore(false);
     } catch (error) {
-      setError('Failed to load posts. Please try again later.');
-      setLoading(false);
+      setError('Failed to load more posts. Please try again later.');
+      setLoadingMore(false);
     }
   };
 
@@ -142,35 +182,52 @@ const PostList = () => {
         <div className="alert alert-danger text-center">{error}</div>
       )}
       
-      <Row>
-        {posts.length === 0 && !loading ? (
-          <Col>
-            <div className="text-center py-5">
-              <h3>No posts yet</h3>
-              {currentUser && (
-                <p>
-                  <Link to="/create-post" className="btn btn-primary mt-3">
-                    Create the first post
-                  </Link>
-                </p>
-              )}
-            </div>
-          </Col>
-        ) : (
-          <Col lg={8} className="mx-auto">
-            {posts.map(post => renderPostCard(post))}
-          </Col>
-        )}
-      </Row>
+      {!currentUser ? (
+        <div className="text-center py-5">
+          <Alert variant="info">
+            <h4>Login Required</h4>
+            <p>You need to be logged in to view posts.</p>
+            <Button 
+              as={Link} 
+              to="/login" 
+              variant="primary"
+              className="mt-3"
+            >
+              <FaSignInAlt className="me-2" /> Login to Continue
+            </Button>
+          </Alert>
+        </div>
+      ) : (
+        <Row>
+          {posts.length === 0 && !loading ? (
+            <Col>
+              <div className="text-center py-5">
+                <h3>No posts yet</h3>
+                {currentUser && (
+                  <p>
+                    <Link to="/create-post" className="btn btn-primary mt-3">
+                      Create the first post
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </Col>
+          ) : (
+            <Col lg={8} className="mx-auto">
+              {posts.map(post => renderPostCard(post))}
+            </Col>
+          )}
+        </Row>
+      )}
       
-      {hasMore && (
+      {hasMore && currentUser && (
         <div className="text-center mt-4 mb-5">
           <Button 
             variant="outline-primary" 
-            onClick={fetchPosts} 
-            disabled={loading}
+            onClick={fetchMorePosts} 
+            disabled={loadingMore}
           >
-            {loading ? (
+            {loadingMore ? (
               <>
                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
                 <span className="ms-2">Loading...</span>
