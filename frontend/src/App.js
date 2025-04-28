@@ -12,6 +12,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 
 // Post Components
+// eslint-disable-next-line no-unused-vars
 import PostList from './components/posts/PostList';
 import PostDetail from './components/posts/PostDetail';
 import CreatePost from './components/posts/CreatePost';
@@ -26,6 +27,10 @@ import UserLandingPage from './components/user/UserLandingPage';
 
 // Home Component
 import HomePage from './components/home/HomePage';
+
+//Learning Component
+import LearningPlanCreate from './components/LearningPlans/LearningPlanCreate';
+import LearningPlanList from './components/LearningPlans/LearningPlanList';
 
 // PrivateRoute component to protect routes that require authentication
 const PrivateRoute = ({ children }) => {
@@ -43,6 +48,7 @@ const PrivateRoute = ({ children }) => {
 };
 
 function AppContent() {
+  const userId = "YOUR_USER_ID";
   return (
     <Router>
       <Header />
@@ -55,7 +61,8 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/users/:id" element={<UserPublicProfile />} />
-            
+            <Route path="/view-planlist" element={<LearningPlanList userId={userId} />} />
+            <Route path="/create-plan" element={<LearningPlanCreate userId={userId} />} />
             {/* Protected Routes */}
             <Route path="/:username/edit-post/:id" element={
               <PrivateRoute>
