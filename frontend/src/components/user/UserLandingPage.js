@@ -240,7 +240,7 @@ const UserLandingPage = () => {
                     </div>
                     
                     {currentUser && post.user.id === currentUser.id && (
-                      <Link to={`/edit-post/${post.id}`} className="btn btn-sm btn-outline-secondary">
+                      <Link to={`/${currentUser.username}/edit-post/${post.id}`} className="btn btn-sm btn-outline-secondary">
                         Edit
                       </Link>
                     )}

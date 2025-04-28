@@ -57,7 +57,7 @@ function AppContent() {
             <Route path="/users/:id" element={<UserPublicProfile />} />
             
             {/* Protected Routes */}
-            <Route path="/edit-post/:id" element={
+            <Route path="/:username/edit-post/:id" element={
               <PrivateRoute>
                 <EditPost />
               </PrivateRoute>
