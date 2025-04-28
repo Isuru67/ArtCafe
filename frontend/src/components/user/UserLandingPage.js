@@ -18,8 +18,9 @@ const UserLandingPage = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [pageTitle, setPageTitle] = useState('');
-  const [loadedPostIds, setLoadedPostIds] = useState(new Set()); // Track loaded post IDs to prevent duplicates
+  const [loadedPostIds, setLoadedPostIds] = useState(new Set());
 
+  // Combined useEffect to handle both reset and initial data fetch
   useEffect(() => {
     // Verify authentication
     if (!currentUser) {
@@ -34,41 +35,46 @@ const UserLandingPage = () => {
       setPageTitle(`Posts by ${username}`);
     }
     
-    // Reset state when username changes
+    // Reset all state when username changes
     setUserPosts([]);
     setPage(0);
     setHasMore(true);
     setLoading(true);
-    setLoadedPostIds(new Set()); // Reset the set of loaded post IDs
+    setLoadedPostIds(new Set());
     
-    fetchUserPosts();
+    // Fetch initial data
+    fetchInitialPosts();
+    
   }, [username, currentUser, navigate]);
+
+  // Fetch posts when page changes (for "Load More" functionality)
+  useEffect(() => {
+    // Only fetch more posts if the page number is > 0
+    // (page 0 is handled by fetchInitialPosts in the first useEffect)
+    if (page > 0 && currentUser) {
+      fetchMorePosts();
+    }
+  }, [page]);
   
-  const fetchUserPosts = async () => {
+  const fetchInitialPosts = async () => {
     try {
       setLoading(true);
-      const response = await getPostsByUsername(username, page);
+      const response = await getPostsByUsername(username, 0);
       
       if (!response.posts || response.posts.length === 0) {
         setHasMore(false);
+        setUserPosts([]);
       } else {
-        // Filter out any posts we've already loaded (prevent duplicates)
-        const newPosts = response.posts.filter(post => !loadedPostIds.has(post.id));
+        setUserPosts(response.posts);
         
-        // If no new posts were returned, we've reached the end
-        if (newPosts.length === 0) {
+        // Update set of loaded post IDs
+        const newIds = new Set();
+        response.posts.forEach(post => newIds.add(post.id));
+        setLoadedPostIds(newIds);
+        
+        // Check if there might be more posts
+        if (response.posts.length < 10) { // Assuming page size is 10
           setHasMore(false);
-        } else {
-          // Add new posts to state and update our tracking of loaded post IDs
-          setUserPosts(prevPosts => [...prevPosts, ...newPosts]);
-          
-          // Update the set of loaded post IDs
-          const updatedLoadedIds = new Set(loadedPostIds);
-          newPosts.forEach(post => updatedLoadedIds.add(post.id));
-          setLoadedPostIds(updatedLoadedIds);
-          
-          // Increment page for next load
-          setPage(prevPage => prevPage + 1);
         }
       }
     } catch (error) {
@@ -77,6 +83,51 @@ const UserLandingPage = () => {
       setHasMore(false);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchMorePosts = async () => {
+    if (!hasMore || loading) return;
+    
+    try {
+      setLoading(true);
+      const response = await getPostsByUsername(username, page);
+      
+      if (!response.posts || response.posts.length === 0) {
+        setHasMore(false);
+      } else {
+        // Filter out posts we've already seen
+        const newPosts = response.posts.filter(post => !loadedPostIds.has(post.id));
+        
+        if (newPosts.length === 0) {
+          setHasMore(false);
+        } else {
+          // Update posts using functional update
+          setUserPosts(prevPosts => [...prevPosts, ...newPosts]);
+          
+          // Update set of loaded post IDs
+          const updatedIds = new Set(loadedPostIds);
+          newPosts.forEach(post => updatedIds.add(post.id));
+          setLoadedPostIds(updatedIds);
+          
+          // Check if there might be more posts
+          if (newPosts.length < 10) { // Assuming page size is 10
+            setHasMore(false);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setError('Failed to load posts. Please try again later.');
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const loadMorePosts = () => {
+    if (!loading && hasMore) {
+      setPage(prevPage => prevPage + 1);
     }
   };
   
@@ -205,7 +256,7 @@ const UserLandingPage = () => {
         <div className="text-center mt-4">
           <Button 
             variant="outline-primary" 
-            onClick={fetchUserPosts} 
+            onClick={loadMorePosts} 
             disabled={loading}
           >
             {loading ? 'Loading...' : 'Load More'}
