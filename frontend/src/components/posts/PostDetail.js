@@ -59,9 +59,22 @@ const PostDetail = () => {
         setHasMoreComments(false);
       } else {
         if (reset) {
+          // When resetting, just use the new comments
           setComments(response.comments);
         } else {
-          setComments(prevComments => [...prevComments, ...response.comments]);
+          // When appending, ensure we don't add duplicates
+          setComments(prevComments => {
+            // Get IDs of existing comments for easy lookup
+            const existingIds = new Set(prevComments.map(comment => comment.id));
+            
+            // Filter out any duplicates from the new comments
+            const newUniqueComments = response.comments.filter(
+              comment => !existingIds.has(comment.id)
+            );
+            
+            // Return combined array with no duplicates
+            return [...prevComments, ...newUniqueComments];
+          });
         }
         setPage(currentPage + 1);
       }
@@ -105,6 +118,7 @@ const PostDetail = () => {
     e.preventDefault();
     
     if (!commentContent.trim()) {
+      setCommentError('Comment cannot be empty');
       return;
     }
     
@@ -117,14 +131,36 @@ const PostDetail = () => {
       setCommentError(null);
       setCommentLoading(true);
       
-      await addComment(id, commentContent);
+      // Call the addComment service function with postId and content
+      const newComment = await addComment(id, commentContent);
+      
+      // Check if the comment already exists in our state to avoid duplicates
+      const commentExists = comments.some(comment => comment.id === newComment.id);
+      
+      if (!commentExists) {
+        // Update local state with the new comment, ensuring we don't duplicate
+        setComments(prevComments => {
+          // Create a new array with the new comment at the beginning
+          return [newComment, ...prevComments];
+        });
+        
+        // Update post's comment count
+        setPost(prevPost => ({
+          ...prevPost,
+          commentCount: prevPost.commentCount + 1
+        }));
+      }
+      
+      // Clear the input
       setCommentContent('');
       
-      // Reload the first page of comments
-      setPage(0);
-      await fetchComments(true);
     } catch (error) {
-      setCommentError('Failed to add comment. Please try again.');
+      console.error('Error adding comment:', error);
+      if (error.response && error.response.data) {
+        setCommentError(`Failed to add comment: ${error.response.data.message || 'Unknown error'}`);
+      } else {
+        setCommentError('Failed to add comment. Please try again.');
+      }
     } finally {
       setCommentLoading(false);
     }

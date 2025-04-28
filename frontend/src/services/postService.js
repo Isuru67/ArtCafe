@@ -98,11 +98,12 @@ export const getCommentsByPostId = async (postId, page = 0, size = 10) => {
 };
 
 // Add a comment to a post
-export const addComment = async (postId, commentData) => {
+export const addComment = async (postId, content) => {
   try {
+    // Fix: Ensure we're sending the content in the correct format the backend expects
     const response = await axios.post(
       `${API_BASE_URL}/api/posts/${postId}/comments`, 
-      commentData
+      { content }
     );
     return response.data;
   } catch (error) {
@@ -112,11 +113,11 @@ export const addComment = async (postId, commentData) => {
 };
 
 // Update a comment
-export const updateComment = async (postId, commentId, commentData) => {
+export const updateComment = async (postId, commentId, content) => {
   try {
     const response = await axios.put(
       `${API_BASE_URL}/api/posts/${postId}/comments/${commentId}`,
-      commentData
+      { content }
     );
     return response.data;
   } catch (error) {
