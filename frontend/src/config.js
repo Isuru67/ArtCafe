@@ -1,11 +1,13 @@
-// API base URLs
-const API_BASE_URL = 'http://localhost:8080/api';
-const AUTH_BASE_URL = `${API_BASE_URL}/auth`;
-const USERS_BASE_URL = `${API_BASE_URL}/users`;
-const POSTS_BASE_URL = `${API_BASE_URL}/posts`;
+// Base URL for API requests
+export const API_BASE_URL = 'http://localhost:8080'; // Or your backend URL
 
-// Image base URL
+// Base URL for images
 export const IMAGE_BASE_URL = 'http://localhost:8080';
+
+// API base URLs
+const AUTH_BASE_URL = `${API_BASE_URL}/api/auth`;
+const USERS_BASE_URL = `${API_BASE_URL}/api/users`;
+const POSTS_BASE_URL = `${API_BASE_URL}/api/posts`;
 
 // API endpoints
 export const API_URLS = {

@@ -1,13 +1,10 @@
 import axios from 'axios';
-import { API_URLS } from '../config';
-import { getAuthHeader } from '../utils/auth';
+import { API_BASE_URL } from '../config';
 
 // Get all posts with pagination
-export const getPosts = async (page = 0, size = 10) => {
+export const getAllPosts = async (page = 0, size = 10) => {
   try {
-    const response = await axios.get(`${API_URLS.posts}?page=${page}&size=${size}`, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.get(`${API_BASE_URL}/api/posts?page=${page}&size=${size}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -15,27 +12,38 @@ export const getPosts = async (page = 0, size = 10) => {
   }
 };
 
-// Get a single post by ID
-export const getPostById = async (postId) => {
+// Alias for getAllPosts to maintain compatibility with existing code
+export const getPosts = getAllPosts;
+
+// Get posts by username with pagination
+export const getPostsByUsername = async (username, page = 0, size = 10) => {
   try {
-    const response = await axios.get(`${API_URLS.posts}/${postId}`, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.get(
+      `${API_BASE_URL}/api/posts/byUsername/${username}?page=${page}&size=${size}`
+    );
     return response.data;
   } catch (error) {
-    console.error(`Error fetching post ${postId}:`, error);
+    console.error(`Error fetching posts for user ${username}:`, error);
+    throw error;
+  }
+};
+
+// Get a single post by ID
+export const getPostById = async (id) => {
+  try {
+    console.log(`Fetching post with ID: ${id}`);
+    const response = await axios.get(`${API_BASE_URL}/api/posts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching post ${id}:`, error);
     throw error;
   }
 };
 
 // Create a new post
-export const createPost = async (postData, username) => {
+export const createPost = async (postData) => {
   try {
-    const response = await axios.post(
-      `${API_URLS.createPost}`, 
-      { ...postData, username: username }, // Add username to the request payload
-      { headers: getAuthHeader() }
-    );
+    const response = await axios.post(`${API_BASE_URL}/api/posts`, postData);
     return response.data;
   } catch (error) {
     console.error('Error creating post:', error);
@@ -44,60 +52,34 @@ export const createPost = async (postData, username) => {
 };
 
 // Update an existing post
-export const updatePost = async (postId, postData) => {
+export const updatePost = async (id, postData) => {
   try {
-    const response = await axios.put(`${API_URLS.updatePost(postId)}`, postData, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.put(`${API_BASE_URL}/api/posts/${id}`, postData);
     return response.data;
   } catch (error) {
-    console.error(`Error updating post ${postId}:`, error);
+    console.error(`Error updating post ${id}:`, error);
     throw error;
   }
 };
 
 // Delete a post
-export const deletePost = async (postId) => {
+export const deletePost = async (id) => {
   try {
-    const response = await axios.delete(`${API_URLS.deletePost(postId)}`, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.delete(`${API_BASE_URL}/api/posts/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error deleting post ${postId}:`, error);
-    throw error;
-  }
-};
-
-// Upload an image for a post
-export const uploadPostImage = async (file) => {
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await axios.post(API_URLS.uploadPostImage, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        ...getAuthHeader(),
-      }
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error(`Error deleting post ${id}:`, error);
     throw error;
   }
 };
 
 // Toggle like on a post
-export const toggleLike = async (postId) => {
+export const toggleLike = async (id) => {
   try {
-    const response = await axios.post(`${API_URLS.posts}/${postId}/like`, {}, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.post(`${API_BASE_URL}/api/posts/${id}/like`);
     return response.data;
   } catch (error) {
-    console.error('Error toggling like:', error);
+    console.error(`Error toggling like for post ${id}:`, error);
     throw error;
   }
 };
@@ -105,9 +87,9 @@ export const toggleLike = async (postId) => {
 // Get comments for a post
 export const getCommentsByPostId = async (postId, page = 0, size = 10) => {
   try {
-    const response = await axios.get(`${API_URLS.getCommentsByPostId(postId)}?page=${page}&size=${size}`, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.get(
+      `${API_BASE_URL}/api/posts/${postId}/comments?page=${page}&size=${size}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching comments for post ${postId}:`, error);
@@ -116,11 +98,12 @@ export const getCommentsByPostId = async (postId, page = 0, size = 10) => {
 };
 
 // Add a comment to a post
-export const addComment = async (postId, content) => {
+export const addComment = async (postId, commentData) => {
   try {
-    const response = await axios.post(API_URLS.createComment(postId), { content }, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.post(
+      `${API_BASE_URL}/api/posts/${postId}/comments`, 
+      commentData
+    );
     return response.data;
   } catch (error) {
     console.error(`Error adding comment to post ${postId}:`, error);
@@ -129,11 +112,12 @@ export const addComment = async (postId, content) => {
 };
 
 // Update a comment
-export const updateComment = async (postId, commentId, content) => {
+export const updateComment = async (postId, commentId, commentData) => {
   try {
-    const response = await axios.put(API_URLS.updateComment(postId, commentId), { content }, {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.put(
+      `${API_BASE_URL}/api/posts/${postId}/comments/${commentId}`,
+      commentData
+    );
     return response.data;
   } catch (error) {
     console.error(`Error updating comment ${commentId}:`, error);
@@ -144,9 +128,9 @@ export const updateComment = async (postId, commentId, content) => {
 // Delete a comment
 export const deleteComment = async (postId, commentId) => {
   try {
-    const response = await axios.delete(API_URLS.deleteComment(postId, commentId), {
-      headers: getAuthHeader(),
-    });
+    const response = await axios.delete(
+      `${API_BASE_URL}/api/posts/${postId}/comments/${commentId}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error deleting comment ${commentId}:`, error);
@@ -154,30 +138,17 @@ export const deleteComment = async (postId, commentId) => {
   }
 };
 
-// Get posts by username
-export const getPostsByUsername = async (username, page = 0, size = 10) => {
-  try {
-    const response = await axios.get(`${API_URLS.getPostsByUsername(username)}?page=${page}&size=${size}`, {
-      headers: getAuthHeader(),
-    });
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching posts for user ${username}:`, error);
-    throw error;
-  }
-};
-
 export default {
+  getAllPosts,
   getPosts,
+  getPostsByUsername,
   getPostById,
   createPost,
   updatePost,
   deletePost,
-  uploadPostImage,
   toggleLike,
   getCommentsByPostId,
   addComment,
   updateComment,
-  deleteComment,
-  getPostsByUsername // Add the new function to the export
+  deleteComment
 };
