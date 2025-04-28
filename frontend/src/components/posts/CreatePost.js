@@ -44,7 +44,7 @@ const CreatePost = () => {
       // Pass username to ensure the post is created for the correct user
       const newPost = await createPost(postData, username);
       
-      navigate(`/posts/${newPost.id}`);
+      navigate(`/${username}`);
     } catch (error) {
       setError('Failed to create post. Please try again.');
       setSubmitting(false);

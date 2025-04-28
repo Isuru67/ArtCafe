@@ -135,7 +135,7 @@ const UserLandingPage = () => {
               {currentUser.username === username && (
                 <Button 
                   as={Link} 
-                  to="/create-post" 
+                  to={`/${currentUser.username}/create-post`}
                   variant="primary"
                   className="mt-3"
                 >
