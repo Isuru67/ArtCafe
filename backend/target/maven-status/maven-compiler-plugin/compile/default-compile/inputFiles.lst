@@ -23,6 +23,7 @@ C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\repository\CommentRepo
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\security\services\UserDetailsImpl.java
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\security\WebSecurityConfig.java
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\dto\NotificationDto.java
+C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\WebConfig.java
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\repository\PlanTopicRepository.java
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\security\jwt\AuthTokenFilter.java
 C:\xampp\htdocs\ArtCafe\backend\src\main\java\com\artcafe\repository\LikeRepository.java
