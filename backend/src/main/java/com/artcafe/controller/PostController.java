@@ -3,10 +3,12 @@ package com.artcafe.controller;
 import com.artcafe.dto.PostDto;
 import com.artcafe.dto.UserDto;
 import com.artcafe.model.Like;
+import com.artcafe.model.Notification;
 import com.artcafe.model.Post;
 import com.artcafe.model.User;
 import com.artcafe.repository.CommentRepository;
 import com.artcafe.repository.LikeRepository;
+import com.artcafe.repository.NotificationRepository;
 import com.artcafe.repository.PostRepository;
 import com.artcafe.repository.UserRepository;
 import com.artcafe.security.services.UserDetailsImpl;
@@ -44,6 +46,12 @@ public class PostController {
     
     @Autowired
     private LikeRepository likeRepository;
+    
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private NotificationController notificationController;
     
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -200,6 +208,26 @@ public class PostController {
             post.incrementLikeCount();
             response.put("liked", true);
             response.put("message", "Post liked successfully");
+            
+            // Create notification if the post isn't by the current user
+            if (!post.getUserId().equals(userDetails.getId())) {
+                // Check if a similar notification exists recently
+                boolean notificationExists = notificationController.existsSimiarNotification(
+                    post.getUserId(), user.getId(), "LIKE", post.getId());
+                    
+                if (!notificationExists) {
+                    Notification notification = new Notification();
+                    notification.setContent("<strong>" + user.getUsername() + "</strong> liked your post: <strong>" + truncateString(post.getTitle(), 30) + "</strong>");
+                    notification.setLink("/posts/" + post.getId());
+                    notification.setRecipientId(post.getUserId());
+                    notification.setSender(user);
+                    notification.setSenderId(user.getId());
+                    notification.setType("LIKE");
+                    notification.setReferenceId(post.getId());
+                    
+                    notificationRepository.save(notification);
+                }
+            }
         }
         
         // Update the post with the new like count
@@ -207,6 +235,14 @@ public class PostController {
         
         response.put("likeCount", post.getLikeCount());
         return ResponseEntity.ok(response);
+    }
+    
+    // Helper method to truncate strings
+    private String truncateString(String text, int maxLength) {
+        if (text == null || text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + "...";
     }
     
     private PostDto convertToDto(Post post) {

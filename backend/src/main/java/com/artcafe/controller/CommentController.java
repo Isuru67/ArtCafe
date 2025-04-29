@@ -3,9 +3,11 @@ package com.artcafe.controller;
 import com.artcafe.dto.CommentDto;
 import com.artcafe.dto.UserDto;
 import com.artcafe.model.Comment;
+import com.artcafe.model.Notification;
 import com.artcafe.model.Post;
 import com.artcafe.model.User;
 import com.artcafe.repository.CommentRepository;
+import com.artcafe.repository.NotificationRepository;
 import com.artcafe.repository.PostRepository;
 import com.artcafe.repository.UserRepository;
 import com.artcafe.security.services.UserDetailsImpl;
@@ -39,6 +41,12 @@ public class CommentController {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private NotificationController notificationController;
     
     @GetMapping
     public ResponseEntity<Map<String, Object>> getCommentsByPostId(
@@ -94,6 +102,26 @@ public class CommentController {
         // Increment comment count on the post
         post.incrementCommentCount();
         postRepository.save(post);
+        
+        // Create notification if the post isn't by the current user
+        if (!post.getUserId().equals(userDetails.getId())) {
+            // Check if a similar notification exists recently
+            boolean notificationExists = notificationController.existsSimiarNotification(
+                post.getUserId(), user.getId(), "COMMENT", savedComment.getId());
+                
+            if (!notificationExists) {
+                Notification notification = new Notification();
+                notification.setContent("<strong>" + user.getUsername() + "</strong> commented on your post: <strong>" + truncateString(post.getTitle(), 30) + "</strong>");
+                notification.setLink("/posts/" + postId);
+                notification.setRecipientId(post.getUserId());
+                notification.setSender(user);
+                notification.setSenderId(user.getId());
+                notification.setType("COMMENT");
+                notification.setReferenceId(savedComment.getId());
+                
+                notificationRepository.save(notification);
+            }
+        }
         
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(savedComment));
     }
@@ -174,5 +202,13 @@ public class CommentController {
         dto.setUser(userDto);
         
         return dto;
+    }
+    
+    // Helper method to truncate strings
+    private String truncateString(String text, int maxLength) {
+        if (text == null || text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + "...";
     }
 }

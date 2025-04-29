@@ -201,12 +201,18 @@ const UserLandingPage = () => {
               <Card className="h-100 shadow-sm">
                 {post.imageUrl && (
                   <Link to={`/posts/${post.id}`}>
-                    <Card.Img 
-                      variant="top" 
-                      src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
-                      className="post-image"
-                      onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=Image+Not+Found'; }}
-                    />
+                    <div className="post-image-container">
+                      <Card.Img 
+                        variant="top" 
+                        src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
+                        className="post-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentNode.classList.add('post-image-fallback');
+                          e.target.parentNode.innerHTML = '<div class="text-center p-3">Image not available</div>';
+                        }}
+                      />
+                    </div>
                   </Link>
                 )}
                 

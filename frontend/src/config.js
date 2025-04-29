@@ -1,45 +1,38 @@
-// Base URL for API requests
-export const API_BASE_URL = 'http://localhost:8080'; // Or your backend URL
-
-// Base URL for images
+// Base URLs
+export const API_BASE_URL = 'http://localhost:8080';
 export const IMAGE_BASE_URL = 'http://localhost:8080';
-
-// API base URLs
-const AUTH_BASE_URL = `${API_BASE_URL}/api/auth`;
-const USERS_BASE_URL = `${API_BASE_URL}/api/users`;
-const POSTS_BASE_URL = `${API_BASE_URL}/api/posts`;
 
 // API endpoints
 export const API_URLS = {
   // Auth endpoints
-  login: `${AUTH_BASE_URL}/login`,
-  signup: `${AUTH_BASE_URL}/signup`,
+  login: `${API_BASE_URL}/api/auth/login`,
+  signup: `${API_BASE_URL}/api/auth/signup`,
   
   // User endpoints
-  getUserProfile: `${USERS_BASE_URL}/profile`,
-  getUserById: (id) => `${USERS_BASE_URL}/${id}`,
-  updateUserProfile: `${USERS_BASE_URL}/profile`,
-  uploadProfilePicture: `${USERS_BASE_URL}/profile/picture`,
-  changePassword: `${USERS_BASE_URL}/profile/change-password`,
-  deleteAccount: `${USERS_BASE_URL}/profile`,
-  checkUsername: `${USERS_BASE_URL}/check-username`,
-  checkEmail: `${USERS_BASE_URL}/check-email`,
+  getUserProfile: `${API_BASE_URL}/api/users/me`,
+  getUserById: (id) => `${API_BASE_URL}/api/users/${id}`,
+  updateUserProfile: `${API_BASE_URL}/api/users/update`,
+  uploadProfilePicture: `${API_BASE_URL}/api/users/upload-profile-picture`,
+  changePassword: `${API_BASE_URL}/api/users/change-password`,
+  deleteAccount: `${API_BASE_URL}/api/users/delete`,
+  checkUsername: `${API_BASE_URL}/api/users/check-username`,
+  checkEmail: `${API_BASE_URL}/api/users/check-email`,
   
   // Post endpoints
-  getPosts: `${POSTS_BASE_URL}`,
-  getPostsByUsername: (username) => `${POSTS_BASE_URL}/byUsername/${username}`,
-  getPostById: (id) => `${POSTS_BASE_URL}/${id}`,
-  createPost: `${POSTS_BASE_URL}`,
-  updatePost: (id) => `${POSTS_BASE_URL}/${id}`,
-  deletePost: (id) => `${POSTS_BASE_URL}/${id}`,
-  uploadPostImage: `${POSTS_BASE_URL}/upload-image`,
-  toggleLike: (id) => `${POSTS_BASE_URL}/${id}/like`,
+  getPosts: `${API_BASE_URL}/api/posts`,
+  getPostsByUsername: (username) => `${API_BASE_URL}/api/posts/byUsername/${username}`,
+  getPostById: (id) => `${API_BASE_URL}/api/posts/${id}`,
+  createPost: `${API_BASE_URL}/api/posts`,
+  updatePost: (id) => `${API_BASE_URL}/api/posts/${id}`,
+  deletePost: (id) => `${API_BASE_URL}/api/posts/${id}`,
+  uploadPostImage: `${API_BASE_URL}/api/posts/upload-image`,
+  toggleLike: (id) => `${API_BASE_URL}/api/posts/${id}/like`,
   
   // Comment endpoints
-  getCommentsByPostId: (postId) => `${POSTS_BASE_URL}/${postId}/comments`,
-  createComment: (postId) => `${POSTS_BASE_URL}/${postId}/comments`,
-  updateComment: (postId, commentId) => `${POSTS_BASE_URL}/${postId}/comments/${commentId}`,
-  deleteComment: (postId, commentId) => `${POSTS_BASE_URL}/${postId}/comments/${commentId}`,
+  getCommentsByPostId: (postId) => `${API_BASE_URL}/api/posts/${postId}/comments`,
+  createComment: (postId) => `${API_BASE_URL}/api/posts/${postId}/comments`,
+  updateComment: (postId, commentId) => `${API_BASE_URL}/api/posts/${postId}/comments/${commentId}`,
+  deleteComment: (postId, commentId) => `${API_BASE_URL}/api/posts/${postId}/comments/${commentId}`,
 };
 
 export default API_URLS;
