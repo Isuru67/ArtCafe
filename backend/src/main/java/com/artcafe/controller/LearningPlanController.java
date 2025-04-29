@@ -21,23 +21,23 @@ public class LearningPlanController {
     }
 
     @GetMapping("/{userId}")
-    public List<LearningPlan> getPlans(@PathVariable Long userId) {
+    public List<LearningPlan> getPlans(@PathVariable String userId) {
         return learningPlanService.getPlansByUser(userId);
     }
 
     @PutMapping("/{planId}")
-    public LearningPlan updatePlan(@PathVariable Long planId, @RequestBody LearningPlan plan) {
+    public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
         return learningPlanService.updatePlan(planId, plan);
     }
 
     @DeleteMapping("/{planId}")
-    public String deletePlan(@PathVariable Long planId) {
+    public String deletePlan(@PathVariable String planId) {
         learningPlanService.deletePlan(planId);
         return "Learning Plan Deleted Successfully";
     }
 
     @PutMapping("/topics/{topicId}/complete")
-    public PlanTopic completeTopic(@PathVariable Long topicId) {
+    public PlanTopic completeTopic(@PathVariable String topicId) {
         return learningPlanService.markTopicCompleted(topicId);
     }
 }

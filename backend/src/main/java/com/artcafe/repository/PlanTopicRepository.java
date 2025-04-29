@@ -1,7 +1,12 @@
 package com.artcafe.repository;
 
 import com.artcafe.model.PlanTopic;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-public interface PlanTopicRepository extends JpaRepository<PlanTopic, Long> {
+import java.util.List;
+
+@Repository
+public interface PlanTopicRepository extends MongoRepository<PlanTopic, String> {
+    List<PlanTopic> findByLearningPlanId(String learningPlanId);
 }

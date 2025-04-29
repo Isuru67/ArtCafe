@@ -1,22 +1,21 @@
 package com.artcafe.model;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "plan_topics")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PlanTopic {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String topicName;
-    private boolean completed ;
-
-    @ManyToOne
-    private LearningPlan learningPlan;
+    private boolean completed;
+    
+    private String learningPlanId;
 }
 

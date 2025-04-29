@@ -1,20 +1,21 @@
 package com.artcafe.model;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Entity
+@Document(collection = "learning_plans")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LearningPlan {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String title;
 
@@ -22,9 +23,10 @@ public class LearningPlan {
 
     private LocalDate targetCompletionDate;
 
-    @ManyToOne
+    @DBRef
     private User createdBy; // Owner of the plan
+    
+    private String createdById;
 
-    @OneToMany(mappedBy = "learningPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlanTopic> topics;
 }
