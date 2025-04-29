@@ -23,18 +23,27 @@ public class LearningPlanService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         plan.setCreatedBy(user);
+        plan.setCreatedById(userId);
 
-        for (PlanTopic topic : plan.getTopics()) {
-            topic.setLearningPlan(plan);
+        // First save the learning plan
+        LearningPlan savedPlan = learningPlanRepository.save(plan);
+        
+        // Then update and save each topic with the plan ID
+        if (plan.getTopics() != null) {
+            for (PlanTopic topic : plan.getTopics()) {
+                topic.setLearningPlanId(savedPlan.getId());
+                planTopicRepository.save(topic);
+            }
         }
-        return learningPlanRepository.save(plan);
+        
+        return savedPlan;
     }
 
-    public List<LearningPlan> getPlansByUser(Long userId) {
+    public List<LearningPlan> getPlansByUser(String userId) {
         return learningPlanRepository.findByCreatedById(userId);
     }
 
-    public LearningPlan updatePlan(Long planId, LearningPlan updatedPlan) {
+    public LearningPlan updatePlan(String planId, LearningPlan updatedPlan) {
         LearningPlan existingPlan = learningPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
@@ -44,11 +53,16 @@ public class LearningPlanService {
         return learningPlanRepository.save(existingPlan);
     }
 
-    public void deletePlan(Long planId) {
+    public void deletePlan(String planId) {
+        // First delete all topics associated with this plan
+        List<PlanTopic> topics = planTopicRepository.findByLearningPlanId(planId);
+        planTopicRepository.deleteAll(topics);
+        
+        // Then delete the plan
         learningPlanRepository.deleteById(planId);
     }
 
-    public PlanTopic markTopicCompleted(Long topicId) {
+    public PlanTopic markTopicCompleted(String topicId) {
         PlanTopic topic = planTopicRepository.findById(topicId)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
         topic.setCompleted(true);

@@ -13,7 +13,15 @@ export const getAllPosts = async (page = 0, size = 10) => {
 };
 
 // Alias for getAllPosts to maintain compatibility with existing code
-export const getPosts = getAllPosts;
+export const getPosts = async (page = 0, size = 10) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/posts?page=${page}&size=${size}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
 
 // Get posts by username with pagination
 export const getPostsByUsername = async (username, page = 0, size = 10) => {
@@ -41,9 +49,13 @@ export const getPostById = async (id) => {
 };
 
 // Create a new post
-export const createPost = async (postData) => {
+export const createPost = async (formData, username) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/posts`, postData);
+    const response = await axios.post(`${API_BASE_URL}/api/posts`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating post:', error);
@@ -52,12 +64,23 @@ export const createPost = async (postData) => {
 };
 
 // Update an existing post
-export const updatePost = async (id, postData) => {
+export const updatePost = async (id, postData, isFormData = false) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/api/posts/${id}`, postData);
+    let config = {};
+    
+    // If sending FormData, set the content type header correctly
+    if (isFormData) {
+      config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+    }
+    
+    const response = await axios.put(`${API_BASE_URL}/api/posts/${id}`, postData, config);
     return response.data;
   } catch (error) {
-    console.error(`Error updating post ${id}:`, error);
+    console.error('Error updating post:', error);
     throw error;
   }
 };

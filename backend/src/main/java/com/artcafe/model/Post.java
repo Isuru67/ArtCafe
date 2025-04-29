@@ -24,6 +24,8 @@ public class Post {
     
     private String imageUrl;
     
+    private String imageName; // Add field to store original filename
+    
     private LocalDateTime createdAt = LocalDateTime.now();
     
     private LocalDateTime updatedAt;

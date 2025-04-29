@@ -202,11 +202,15 @@ const UserLandingPage = () => {
                 {post.imageUrl && (
                   <Link to={`/posts/${post.id}`}>
                     <div className="post-image-container">
+                      {/* Add console log for debugging purposes */}
+                      {console.log('Image URL:', post.imageUrl, 'Full path:', post.imageUrl.startsWith('data:') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`)}
                       <Card.Img 
                         variant="top" 
-                        src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
+                        src={post.imageUrl.startsWith('data:') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`} 
                         className="post-image"
+                        alt={post.imageName || 'Post image'}
                         onError={(e) => {
+                          console.error('Image failed to load:', e.target.src);
                           e.target.style.display = 'none';
                           e.target.parentNode.classList.add('post-image-fallback');
                           e.target.parentNode.innerHTML = '<div class="text-center p-3">Image not available</div>';
