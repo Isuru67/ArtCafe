@@ -1,16 +1,52 @@
-import React, { useContext } from 'react';
-import { Navbar, Container, Nav, NavDropdown, Button } from 'react-bootstrap';
+import React, { useContext, useState, useEffect, useRef } from 'react';
+import { Navbar, Container, Nav, NavDropdown, Button, Overlay, Popover } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaBell } from 'react-icons/fa';
 import { AuthContext } from '../../context/AuthContext';
 import { IMAGE_BASE_URL } from '../../config';
+import NotificationDropdown from '../notifications/NotificationDropdown';
+import { getUnreadCount } from '../../services/notificationService';
 
 const Header = () => {
   const { currentUser, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notificationTarget = useRef(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchUnreadCount();
+      
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
+
+  const fetchUnreadCount = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const response = await getUnreadCount();
+      setUnreadCount(response.count);
+    } catch (error) {
+      console.error('Error fetching unread notifications count:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const handleNotificationsRead = (count) => {
+    setUnreadCount(Math.max(0, unreadCount - count));
   };
 
   return (
@@ -30,6 +66,35 @@ const Header = () => {
           <Nav>
             {currentUser ? (
               <>
+                <div className="notification-container me-3">
+                  <Button
+                    ref={notificationTarget}
+                    variant="light"
+                    className="notification-btn"
+                    onClick={toggleNotifications}
+                  >
+                    <FaBell />
+                    {unreadCount > 0 && (
+                      <span className="notification-indicator"></span>
+                    )}
+                  </Button>
+                  
+                  <Overlay
+                    show={showNotifications}
+                    target={notificationTarget.current}
+                    placement="bottom-end"
+                    container={document.body}
+                    rootClose
+                    onHide={() => setShowNotifications(false)}
+                  >
+                    <Popover id="notification-popover" className="notification-popover">
+                      <Popover.Body className="p-0">
+                        <NotificationDropdown onNotificationsRead={handleNotificationsRead} />
+                      </Popover.Body>
+                    </Popover>
+                  </Overlay>
+                </div>
+                
                 <NavDropdown 
                   title={
                     <span>

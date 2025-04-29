@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, Button, Form, Alert, Row, Col, Spinner } from 'react-bootstrap';
-import { FaHeart, FaRegHeart, FaTrashAlt, FaEdit } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaTrashAlt, FaEdit, FaUser } from 'react-icons/fa';
 import { getPostById, toggleLike, deletePost, getCommentsByPostId, addComment, updateComment, deleteComment } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
 import { IMAGE_BASE_URL } from '../../config';
@@ -243,12 +243,22 @@ const PostDetail = () => {
           <Card className="shadow">
             <Card.Header className="bg-white d-flex justify-content-between align-items-center">
               <div className="d-flex align-items-center">
-                <img 
-                  src={post.user.profilePicture ? `${IMAGE_BASE_URL}${post.user.profilePicture}` : 'https://via.placeholder.com/40'} 
-                  alt={post.user.username}
-                  className="avatar me-2"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/40'; }}
-                />
+                {post.user.profilePicture ? (
+                  <img 
+                    src={`${IMAGE_BASE_URL}${post.user.profilePicture}`}
+                    alt={post.user.username}
+                    className="avatar me-2"
+                    onError={(e) => {
+                      // Replace with inline rendered icon instead of external URL
+                      e.target.style.display = 'none';
+                      e.target.parentNode.appendChild(
+                        document.createElement('div')
+                      ).className = 'avatar avatar-fallback me-2';
+                    }}
+                  />
+                ) : (
+                  <div className="avatar avatar-fallback me-2"></div>
+                )}
                 <div>
                   <Link to={`/users/${post.user.id}`} className="text-decoration-none">
                     <strong>{post.user.fullName || post.user.username}</strong>
@@ -282,12 +292,18 @@ const PostDetail = () => {
             </Card.Header>
             
             {post.imageUrl && (
-              <Card.Img 
-                variant="top" 
-                src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
-                className="post-image"
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=Image+Not+Found'; }}
-              />
+              <div className="post-image-container">
+                <Card.Img 
+                  variant="top" 
+                  src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
+                  className="post-image"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentNode.classList.add('post-image-fallback');
+                    e.target.parentNode.innerHTML = '<div class="text-center p-5">Image not available</div>';
+                  }}
+                />
+              </div>
             )}
             
             <Card.Body>
@@ -345,12 +361,21 @@ const PostDetail = () => {
                     <Card key={comment.id} className="mb-3 border-0 bg-light">
                       <Card.Body className="py-3">
                         <div className="d-flex align-items-start">
-                          <img 
-                            src={comment.user.profilePicture ? `${IMAGE_BASE_URL}${comment.user.profilePicture}` : 'https://via.placeholder.com/30'} 
-                            alt={comment.user.username}
-                            className="avatar avatar-sm me-2"
-                            onError={(e) => { e.target.src = 'https://via.placeholder.com/30'; }}
-                          />
+                          {comment.user.profilePicture ? (
+                            <img 
+                              src={`${IMAGE_BASE_URL}${comment.user.profilePicture}`}
+                              alt={comment.user.username}
+                              className="avatar avatar-sm me-2"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentNode.appendChild(
+                                  document.createElement('div')
+                                ).className = 'avatar avatar-sm avatar-fallback me-2';
+                              }}
+                            />
+                          ) : (
+                            <div className="avatar avatar-sm avatar-fallback me-2"></div>
+                          )}
                           <div className="flex-grow-1">
                             <div className="d-flex justify-content-between align-items-center mb-2">
                               <div>
