@@ -1,30 +1,35 @@
 package com.artcafe.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Document(collection = "learningplans")
 public class LearningPlan {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
+    private String id;
+
+    @Field("title")
     private String title;
 
+    @Field("description")
     private String description;
 
+    @Field("targetCompletionDate")
     private LocalDate targetCompletionDate;
 
-    @ManyToOne
-    private User createdBy; // Owner of the plan
+    @Field("createdBy")
+    private String createdBy;
 
-    @OneToMany(mappedBy = "learningPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Field("topics")
     private List<PlanTopic> topics;
 }

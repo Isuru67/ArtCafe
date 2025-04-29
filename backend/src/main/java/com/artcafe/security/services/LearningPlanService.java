@@ -4,7 +4,6 @@ import com.artcafe.model.LearningPlan;
 import com.artcafe.model.PlanTopic;
 import com.artcafe.model.User;
 import com.artcafe.repository.LearningPlanRepository;
-import com.artcafe.repository.PlanTopicRepository;
 import com.artcafe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,43 +15,62 @@ import java.util.List;
 public class LearningPlanService {
 
     private final LearningPlanRepository learningPlanRepository;
-    private final PlanTopicRepository planTopicRepository;
     private final UserRepository userRepository;
 
+    // Create a plan for a user
     public LearningPlan createPlan(String userId, LearningPlan plan) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        plan.setCreatedBy(user);
-
-        for (PlanTopic topic : plan.getTopics()) {
-            topic.setLearningPlan(plan);
-        }
+        plan.setCreatedBy(user.getId()); // Only store User ID
         return learningPlanRepository.save(plan);
+
+        
+        
     }
 
-    public List<LearningPlan> getPlansByUser(Long userId) {
-        return learningPlanRepository.findByCreatedById(userId);
+    // Get all plans by userId
+    public List<LearningPlan> getPlansByUser(String userId) {
+        return learningPlanRepository.findByCreatedBy(userId);
     }
 
-    public LearningPlan updatePlan(Long planId, LearningPlan updatedPlan) {
+    // Update a plan by planId
+    public LearningPlan updatePlan(String planId, LearningPlan updatedPlan) {
         LearningPlan existingPlan = learningPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
         existingPlan.setTitle(updatedPlan.getTitle());
         existingPlan.setDescription(updatedPlan.getDescription());
         existingPlan.setTargetCompletionDate(updatedPlan.getTargetCompletionDate());
+        existingPlan.setTopics(updatedPlan.getTopics()); // Topics can also be updated
         return learningPlanRepository.save(existingPlan);
+
+        
+        
     }
 
-    public void deletePlan(Long planId) {
+    // Delete a plan by ID
+    public void deletePlan(String planId) {
         learningPlanRepository.deleteById(planId);
     }
 
-    public PlanTopic markTopicCompleted(Long topicId) {
-        PlanTopic topic = planTopicRepository.findById(topicId)
-                .orElseThrow(() -> new RuntimeException("Topic not found"));
-        topic.setCompleted(true);
-        return planTopicRepository.save(topic);
-    }
-}
+    // Mark a topic completed
+    public LearningPlan markTopicCompleted(String topicId) {
+        List<LearningPlan> allPlans = learningPlanRepository.findAll();
 
+        for (LearningPlan plan : allPlans) {
+            for (PlanTopic topic : plan.getTopics()) {
+                if (topic.getId().equals(topicId)) {
+                    topic.setCompleted(true);
+                    return learningPlanRepository.save(plan);
+                }
+            }
+        }
+        throw new RuntimeException("Topic not found");
+    }
+
+    public LearningPlan getPlanById(String planId) {
+        return learningPlanRepository.findById(planId)
+            .orElseThrow(() -> new RuntimeException("Plan not found"));
+    }
+    
+}

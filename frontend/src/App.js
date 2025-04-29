@@ -29,8 +29,10 @@ import UserLandingPage from './components/user/UserLandingPage';
 import HomePage from './components/home/HomePage';
 
 //Learning Component
+import LearningPlanDashboard from './components/LearningPlans/LearningPlanDashboard';
 import LearningPlanCreate from './components/LearningPlans/LearningPlanCreate';
 import LearningPlanList from './components/LearningPlans/LearningPlanList';
+import LearningPlanEdit from './components/LearningPlans/LearningPlanEdit';
 
 // PrivateRoute component to protect routes that require authentication
 const PrivateRoute = ({ children }) => {
@@ -61,8 +63,10 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/users/:id" element={<UserPublicProfile />} />
+            <Route path="/lerning-dashboard" element={<LearningPlanDashboard userId={userId} />} />
             <Route path="/view-planlist" element={<LearningPlanList userId={userId} />} />
             <Route path="/create-plan" element={<LearningPlanCreate userId={userId} />} />
+            <Route path="/edit-plan" element={<LearningPlanEdit />} />
             {/* Protected Routes */}
             <Route path="/:username/edit-post/:id" element={
               <PrivateRoute>
