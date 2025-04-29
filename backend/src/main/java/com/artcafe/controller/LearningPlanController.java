@@ -20,7 +20,8 @@ public class LearningPlanController {
 
     @PostMapping("/{userId}")
     public LearningPlan createPlan(@PathVariable String userId, @RequestBody LearningPlan plan) {
-        return learningPlanService.createPlan(userId, plan);
+        return learningPlanService.updatePlan(userId, plan);
+        
     }
 
    // @GetMapping("/{userId}")
