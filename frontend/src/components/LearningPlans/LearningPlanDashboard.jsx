@@ -75,6 +75,7 @@ function LearningPlanDashboard() {
         };
 
         return (
+            
             <div className="position-relative" style={{ width: '100px', height: '100px' }}>
                 <Doughnut data={data} options={options} />
                 <div 
@@ -84,6 +85,7 @@ function LearningPlanDashboard() {
                     {progress}%
                 </div>
             </div>
+            
         );
     };
 
@@ -98,6 +100,16 @@ function LearningPlanDashboard() {
     }
 
     return (
+        // <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center"
+        //     style={{
+        //         backgroundImage: "url('/df68b0_15eb4fc4e75946eea872f6f531e712fd~mv2.avif')",
+        //         backgroundSize: "cover",
+        //         backgroundRepeat: "no-repeat",
+        //         height: "150vh",             // Full viewport height
+        //         width: "90vw",              // Full viewport width
+        //         display: "flex",
+        //     }}
+        // >
         <div className="container py-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2>📚 My Learning Plans</h2>
@@ -105,9 +117,9 @@ function LearningPlanDashboard() {
                     <Link to={`/${userid}/create-plan`} className="btn btn-primary">
                         ➕ Create New Plan
                     </Link>
-                    <Link to={`/${userid}/view-planlist`} className="btn btn-info">
+                    {/* <Link to={`/${userid}/view-planlist`} className="btn btn-info">
                         👀 View All Plans
-                    </Link>
+                    </Link> */}
                 </div>
             </div>
 
@@ -176,6 +188,7 @@ function LearningPlanDashboard() {
                 </div>
             )}
         </div>
+       // </div>
     );
 }
 

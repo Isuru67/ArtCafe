@@ -132,7 +132,7 @@ function LearningPlanCreate() {
                             </div>
                         </div>
 
-                        <div className="mt-3 text-center">
+                        {/* <div className="mt-3 text-center">
                             <button 
                                 type="button" 
                                 className="btn btn-info"
@@ -140,7 +140,7 @@ function LearningPlanCreate() {
                             >
                                 👀 View All My Plans
                             </button>
-                        </div>
+                        </div> */}
 
                         <div className="mt-4 text-center text-muted small">
                             “A goal without a plan is just a wish.” – Antoine de Saint-Exupéry
