@@ -50,7 +50,8 @@ const PrivateRoute = ({ children }) => {
 };
 
 function AppContent() {
-  const userId = "YOUR_USER_ID";
+  const { currentUser } = useContext(AuthContext);  // Add this line
+
   return (
     <Router>
       <Header />
@@ -63,10 +64,38 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/users/:id" element={<UserPublicProfile />} />
-            <Route path="/:userid/lerning-dashboard" element={<LearningPlanDashboard userId={userId} />} />
-            <Route path="/:userid/view-planlist" element={<LearningPlanList userId={userId} />} />
-            <Route path="/:userid/create-plan" element={<LearningPlanCreate userId={userId} />} />
-            <Route path="/:userid/edit-plan/:planId" element={<LearningPlanEdit />} />
+            <Route 
+              path="/:userid/lerning-dashboard" 
+              element={
+                <PrivateRoute>
+                  <LearningPlanDashboard />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/:userid/view-planlist" 
+              element={
+                <PrivateRoute>
+                  <LearningPlanList />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/:userid/create-plan" 
+              element={
+                <PrivateRoute>
+                  <LearningPlanCreate />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/:userid/edit-plan/:planId" 
+              element={
+                <PrivateRoute>
+                  <LearningPlanEdit />
+                </PrivateRoute>
+              } 
+            />
             {/* Protected Routes */}
             <Route path="/:username/edit-post/:id" element={
               <PrivateRoute>
