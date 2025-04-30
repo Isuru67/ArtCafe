@@ -63,10 +63,10 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/users/:id" element={<UserPublicProfile />} />
-            <Route path="/lerning-dashboard" element={<LearningPlanDashboard userId={userId} />} />
-            <Route path="/view-planlist" element={<LearningPlanList userId={userId} />} />
-            <Route path="/create-plan" element={<LearningPlanCreate userId={userId} />} />
-            <Route path="/edit-plan" element={<LearningPlanEdit />} />
+            <Route path="/:userid/lerning-dashboard" element={<LearningPlanDashboard userId={userId} />} />
+            <Route path="/:userid/view-planlist" element={<LearningPlanList userId={userId} />} />
+            <Route path="/:userid/create-plan" element={<LearningPlanCreate userId={userId} />} />
+            <Route path="/:userid/edit-plan/:planId" element={<LearningPlanEdit />} />
             {/* Protected Routes */}
             <Route path="/:username/edit-post/:id" element={
               <PrivateRoute>

@@ -19,9 +19,9 @@ public class LearningPlanController {
     private final LearningPlanService learningPlanService;
 
     @PostMapping("/{userId}")
-    public LearningPlan createPlan(@PathVariable String userId, @RequestBody LearningPlan plan) {
-        return learningPlanService.updatePlan(userId, plan);
-        
+    public LearningPlanDto createPlan(@PathVariable String userId, @RequestBody LearningPlan plan) {
+        LearningPlan createdPlan = learningPlanService.createLearningPlan(userId, plan);
+        return convertToDto(createdPlan);
     }
 
    // @GetMapping("/{userId}")

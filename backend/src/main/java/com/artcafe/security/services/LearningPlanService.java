@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,17 +22,21 @@ public class LearningPlanService {
     private final UserRepository userRepository;
 
     // Create a plan for a user
-    public LearningPlan createLearningPlan() {
-        LearningPlan plan = new LearningPlan();
-        plan.setTitle("Test Learning Plan");
-        plan.setDescription("Description for test learning plan");
-        plan.setTargetCompletionDate(LocalDate.of(2025, 6, 1));
-
-        PlanTopic topic1 = new PlanTopic("1", "Intro to MongoDB", false);
-        PlanTopic topic2 = new PlanTopic("2", "Advanced MongoDB", false);
-        plan.setTopics(List.of(topic1, topic2));
-
-        return learningPlanRepository.save(plan); // This will save the document to MongoDB
+    public LearningPlan createLearningPlan(String userId, LearningPlan newPlan) {
+        newPlan.setCreatedBy(userId);
+        
+        if (newPlan.getTopics() != null) {
+            List<PlanTopic> formattedTopics = newPlan.getTopics().stream()
+                .map(topic -> PlanTopic.builder()
+                    .id(UUID.randomUUID().toString())
+                    .topicName(topic.getTopicName())
+                    .completed(false)
+                    .build())
+                .collect(Collectors.toList());
+            newPlan.setTopics(formattedTopics);
+        }
+        
+        return learningPlanRepository.save(newPlan);
     }
 
     // Get all plans by userId

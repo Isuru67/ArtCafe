@@ -8,7 +8,15 @@ export const getLearningPlans = (userId) => {
 };
 
 export const createLearningPlan = (userId, plan) => {
-  return axios.post(`${API_URL}/${userId}`, plan, { headers: authHeader() });
+  const formattedPlan = {
+    ...plan,
+    topics: plan.topics.map(topic => ({
+      topicName: topic,
+      completed: false
+    }))
+  };
+  
+  return axios.post(`${API_URL}/${userId}`, formattedPlan, { headers: authHeader() });
 };
 
 export const updateLearningPlan = (planId, plan) => {
