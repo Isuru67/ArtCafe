@@ -14,6 +14,7 @@ public class PostDto {
     private String title;
     private String content;
     private String imageUrl;
+    private String imageName; // Add field to include original filename
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserDto user;

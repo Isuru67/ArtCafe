@@ -24,17 +24,19 @@ public class LearningPlanController {
         return convertToDto(createdPlan);
     }
 
-   // @GetMapping("/{userId}")
-    // public List<LearningPlan> getPlans(@PathVariable String userId) {
-    //     return learningPlanService.getPlansByUser(userId);
-    // }
+    @GetMapping("/{userId}")
+    public List<LearningPlan> getPlans(@PathVariable String userId) {
+        return learningPlanService.getPlansByUser(userId);
+    }
 
     @PutMapping("/{planId}")
+    public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
     public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
         return learningPlanService.updatePlan(planId, plan);
     }
 
     @DeleteMapping("/{planId}")
+    public String deletePlan(@PathVariable String planId) {
     public String deletePlan(@PathVariable String planId) {
         learningPlanService.deletePlan(planId);
         return "Learning Plan Deleted Successfully";

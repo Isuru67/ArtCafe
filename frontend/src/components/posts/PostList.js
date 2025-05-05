@@ -125,9 +125,14 @@ const PostList = () => {
           <Link to={`/posts/${post.id}`}>
             <Card.Img 
               variant="top" 
-              src={`${IMAGE_BASE_URL}${post.imageUrl}`} 
+              src={post.imageUrl.startsWith('data:') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`}
               className="post-image"
-              onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=Image+Not+Found'; }}
+              alt={post.imageName || 'Post image'}
+              onError={(e) => { 
+                e.target.style.display = 'none';
+                e.target.parentNode.classList.add('post-image-fallback');
+                e.target.parentNode.innerHTML = '<div class="text-center p-3">Image not available</div>';
+              }}
             />
           </Link>
         )}

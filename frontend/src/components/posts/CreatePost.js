@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Form, Button, Card, Container, Alert } from 'react-bootstrap';
+import { Form, Button, Card, Container, Alert, Image } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createPost } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
@@ -12,6 +12,8 @@ const CreatePost = () => {
   
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -34,6 +36,17 @@ const CreatePost = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      
+      // Create a preview URL for the selected image
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -41,8 +54,17 @@ const CreatePost = () => {
       setSubmitting(true);
       setError('');
       
-      // Pass username to ensure the post is created for the correct user
-      const newPost = await createPost(postData, username);
+      // Create FormData object to send both text data and file
+      const formData = new FormData();
+      formData.append('title', postData.title);
+      formData.append('content', postData.content);
+      
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+      
+      // Pass username and FormData to create the post
+      const newPost = await createPost(formData, username);
       
       navigate(`/${username}`);
     } catch (error) {
@@ -52,6 +74,10 @@ const CreatePost = () => {
   };
 
   const handleCancel = () => {
+    // Clean up preview URL when canceling
+    if (previewImage) {
+      URL.revokeObjectURL(previewImage);
+    }
     // Navigate back to the user's profile page
     navigate(`/${username}`);
   };
@@ -92,6 +118,32 @@ const CreatePost = () => {
                 disabled={!!error}
               />
             </Form.Group>
+            
+            <Form.Group className="mb-4">
+              <Form.Label>Upload Image</Form.Label>
+              <Form.Control
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={!!error}
+              />
+              <Form.Text className="text-muted">
+                Upload an image of your artwork (optional)
+              </Form.Text>
+            </Form.Group>
+            
+            {previewImage && (
+              <div className="mb-4 text-center">
+                <p>Preview:</p>
+                <Image 
+                  src={previewImage} 
+                  alt="Preview" 
+                  fluid 
+                  thumbnail 
+                  style={{ maxHeight: '300px' }}
+                />
+              </div>
+            )}
             
             <div className="d-flex justify-content-between">
               <Button 

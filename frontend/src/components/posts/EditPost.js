@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Form, Button, Card, Container, Alert, Spinner, Modal } from 'react-bootstrap';
+import { Form, Button, Card, Container, Alert, Spinner, Modal, Image } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPostById, updatePost, deletePost } from '../../services/postService';
 import { AuthContext } from '../../context/AuthContext';
+import { IMAGE_BASE_URL } from '../../config';
 import axios from 'axios';
 
 const EditPost = () => {
@@ -16,11 +17,13 @@ const EditPost = () => {
     content: ''
   });
   
+  // Keep existing image state for display only, not editing
+  const [existingImage, setExistingImage] = useState(null);
+  
   const [originalPost, setOriginalPost] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // Add state for delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   
@@ -80,6 +83,14 @@ const EditPost = () => {
         content: data.content || ''
       });
       
+      // Set existing image if available - for display only
+      if (data.imageUrl) {
+        setExistingImage(data.imageUrl.startsWith('data:') ? 
+          data.imageUrl : 
+          `${IMAGE_BASE_URL}${data.imageUrl}`
+        );
+      }
+      
       setOriginalPost(data);
       setLoading(false);
     } catch (error) {
@@ -130,8 +141,12 @@ const EditPost = () => {
       setSubmitting(true);
       setError('');
       
-      console.log("Updating post with ID:", id, "and data:", postData);
-      await updatePost(id, postData);
+      // Only send title and content for update
+      console.log("Updating post with ID:", id, "using JSON");
+      await updatePost(id, {
+        title: postData.title,
+        content: postData.content
+      });
       
       // After successful update, navigate to appropriate page
       if (username) {
@@ -148,7 +163,7 @@ const EditPost = () => {
     }
   };
   
-  // Add handler for delete button
+  // Keep the delete functionality
   const handleDeletePost = async () => {
     try {
       setDeleting(true);
@@ -206,6 +221,23 @@ const EditPost = () => {
           {error && <Alert variant={error.includes('deleted successfully') ? 'success' : 'danger'}>
             {error}
           </Alert>}
+          
+          {/* Display the existing image (read-only) */}
+          {existingImage && (
+            <div className="mb-4 text-center">
+              <p>Post Image:</p>
+              <Image 
+                src={existingImage}
+                alt="Post image" 
+                fluid 
+                thumbnail 
+                style={{ maxHeight: '300px' }}
+              />
+              <p className="text-muted mt-2">
+                <small>Images cannot be edited. You can only modify the title and content.</small>
+              </p>
+            </div>
+          )}
           
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-4">

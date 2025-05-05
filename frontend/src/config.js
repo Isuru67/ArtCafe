@@ -1,6 +1,19 @@
-// Base URLs
+// Configuration settings for the ArtCafe frontend
+
+// API base URL
 export const API_BASE_URL = 'http://localhost:8080';
-export const IMAGE_BASE_URL = 'http://localhost:8080';
+
+// Base URL for image paths - make sure this points to your API server
+export const IMAGE_BASE_URL = 'http://localhost:8080';  // Updated to include full server URL
+
+// For production deployment, you might want to set absolute URLs
+// export const IMAGE_BASE_URL = 'http://your-domain.com';
+
+// Maximum upload size for images (in bytes)
+export const MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Supported image formats
+export const SUPPORTED_IMAGE_FORMATS = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 // API endpoints
 export const API_URLS = {
