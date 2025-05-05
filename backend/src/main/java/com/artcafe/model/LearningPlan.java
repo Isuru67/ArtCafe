@@ -20,7 +20,7 @@ public class LearningPlan {
 
     @Id
     private String id;
-    private String id;
+    
 
     @Field("title")
     private String title;

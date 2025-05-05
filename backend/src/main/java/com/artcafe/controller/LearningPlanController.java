@@ -30,13 +30,12 @@ public class LearningPlanController {
     }
 
     @PutMapping("/{planId}")
-    public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
+    
     public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
         return learningPlanService.updatePlan(planId, plan);
     }
 
     @DeleteMapping("/{planId}")
-    public String deletePlan(@PathVariable String planId) {
     public String deletePlan(@PathVariable String planId) {
         learningPlanService.deletePlan(planId);
         return "Learning Plan Deleted Successfully";
@@ -47,7 +46,7 @@ public class LearningPlanController {
         return learningPlanService.markTopicCompleted(topicId);
     }
     @GetMapping("/{userId}")
-public List<LearningPlanDto> getPlans(@PathVariable String userId) {
+public List<LearningPlanDto> getPlansDto(@PathVariable String userId) {
     List<LearningPlan> plans = learningPlanService.getPlansByUser(userId);
     return plans.stream()
         .map(this::convertToDto)

@@ -27,11 +27,18 @@ export const deleteLearningPlan = (planId) => {
   return axios.delete(`${API_URL}/${planId}`, { headers: authHeader() });
 };
 
-export const completeTopic = (topicId) => {
-  return axios.put(`${API_URL}/topics/${topicId}/complete`, {}, { headers: authHeader() });
+export const completeTopic = async (topicId, userId) => {
+  const token = localStorage.getItem('token'); // Get the auth token
+  return await axios.put(`${API_URL}/topics/${topicId}/complete`, 
+      { userId },  // Include userId in request body
+      {
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+      }
+  );
 };
 
-// ✅ ADD THIS FUNCTION:
 export const getLearningPlanById = (planId) => {
   return axios.get(`${API_URL}/single/${planId}`, { headers: authHeader() });
 };
