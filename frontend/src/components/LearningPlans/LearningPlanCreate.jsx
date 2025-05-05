@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createLearningPlan } from '../../services/learningPlanService';
 
+
 function LearningPlanCreate() {
     const navigate = useNavigate();
     const { userid } = useParams();
@@ -47,14 +48,14 @@ function LearningPlanCreate() {
                 backgroundImage: "url('/diary-planning.jpg')",
                 backgroundSize: "cover",
                 backgroundRepeat: "no-repeat",
-                height: "100vh",             // Full viewport height
+                height: "130vh",             // Full viewport height
                 width: "92vw",              // Full viewport width
                 display: "flex",
             }}
         >
             <div className="container py-4">
                 <div className="row justify-content-center">
-                    <div className="col-md-10 col-lg-8">
+                    <div className="col-md- col-lg-8">
                         <div className="card shadow  bg-light bg-opacity-75 rounded-4 border-0">
                             <div className="card-body p-5">
                                 <h2 className="text-center mb-4">🎨 Create Your Learning Plan</h2>
