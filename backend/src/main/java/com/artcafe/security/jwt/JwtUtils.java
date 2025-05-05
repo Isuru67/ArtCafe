@@ -36,7 +36,11 @@ public class JwtUtils {
     }
     
     private Key key() {
-        // Use the raw bytes of the secret instead of trying to base64 decode it
+        // Make sure the key is at least 256 bits for HMAC-SHA256
+        if (jwtSecret.length() < 32) { // 32 bytes = 256 bits
+            logger.warn("JWT secret key is too short! Using a securely generated key instead.");
+            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        }
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
