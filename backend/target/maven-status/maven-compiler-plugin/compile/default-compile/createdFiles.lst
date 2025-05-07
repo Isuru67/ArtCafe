@@ -1,3 +1,4 @@
+com\artcafe\WebConfig.class
 com\artcafe\security\jwt\AuthTokenFilter.class
 com\artcafe\dto\LearningPlanDto.class
 com\artcafe\dto\PlanTopicDto.class

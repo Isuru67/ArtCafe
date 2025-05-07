@@ -31,7 +31,7 @@ import HomePage from './components/home/HomePage';
 //Learning Component
 import LearningPlanDashboard from './components/LearningPlans/LearningPlanDashboard';
 import LearningPlanCreate from './components/LearningPlans/LearningPlanCreate';
-import LearningPlanList from './components/LearningPlans/LearningPlanList';
+
 import LearningPlanEdit from './components/LearningPlans/LearningPlanEdit';
 
 // PrivateRoute component to protect routes that require authentication
@@ -50,6 +50,7 @@ const PrivateRoute = ({ children }) => {
 };
 
 function AppContent() {
+  // eslint-disable-next-line no-unused-vars
   const { currentUser } = useContext(AuthContext);  // Add this line
 
   return (
@@ -72,14 +73,14 @@ function AppContent() {
                 </PrivateRoute>
               } 
             />
-            <Route 
+            {/* <Route 
               path="/:userid/view-planlist" 
               element={
                 <PrivateRoute>
                   <LearningPlanList />
                 </PrivateRoute>
               } 
-            />
+            /> */}
             <Route 
               path="/:userid/create-plan" 
               element={
