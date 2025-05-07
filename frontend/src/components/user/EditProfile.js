@@ -1,10 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner, Tab, Nav } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUpload, FaCog } from 'react-icons/fa';
+import { FaUpload, FaUser, FaArrowLeft, FaCamera, FaExclamationTriangle } from 'react-icons/fa';
 import { AuthContext } from '../../context/AuthContext';
-import { getUserProfile, updateUserProfile, uploadProfilePicture } from '../../services/userService';
-import { IMAGE_BASE_URL } from '../../config';
+import axios from 'axios';
+import { API_BASE_URL, IMAGE_BASE_URL } from '../../config';
 
 const EditProfile = () => {
   const { currentUser, updateUserInContext } = useContext(AuthContext);
@@ -22,34 +22,51 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [imageError, setImageError] = useState(false);
   
   useEffect(() => {
+    // Ensure auth token is set properly
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    
     if (!currentUser) {
       navigate('/login');
       return;
     }
     
-    fetchUserProfile();
-  }, [currentUser]);
+    // Initialize form with current user data
+    setProfileData({
+      fullName: currentUser.fullName || '',
+      bio: currentUser.bio || ''
+    });
+    
+    if (currentUser.profilePicture) {
+      setPreviewUrl(`${IMAGE_BASE_URL}${currentUser.profilePicture}`);
+      setImageError(false); // Reset image error when setting new image
+    }
+    
+    setLoading(false);
+  }, [currentUser, navigate]);
   
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      const userData = await getUserProfile();
-      
-      setProfileData({
-        fullName: userData.fullName || '',
-        bio: userData.bio || ''
-      });
-      
-      if (userData.profilePicture) {
-        setPreviewUrl(`${IMAGE_BASE_URL}${userData.profilePicture}`);
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      setError('Failed to load user profile.');
-      setLoading(false);
+  // Handle image loading errors
+  const handleImageError = () => {
+    console.log("Profile image failed to load, using placeholder");
+    setImageError(true);
+  };
+  
+  // Get image source with fallback
+  const getImageSrc = () => {
+    if (profilePicture) {
+      // If there's a new selected file, use its preview URL
+      return previewUrl;
+    } else if (!imageError && currentUser?.profilePicture) {
+      // If there's an existing profile picture and no error
+      return `${IMAGE_BASE_URL}${currentUser.profilePicture}`;
+    } else {
+      // Fallback to placeholder
+      return 'https://via.placeholder.com/150';
     }
   };
   
@@ -90,15 +107,61 @@ const EditProfile = () => {
       setUploading(true);
       setError('');
       
-      const response = await uploadProfilePicture(profilePicture);
+      const formData = new FormData();
+      formData.append('file', profilePicture);
       
-      // Update the user in context
-      updateUserInContext({ profilePicture: response.profilePicture });
+      console.log("Uploading profile picture...");
       
-      setSuccessMessage('Profile picture updated successfully!');
-      setUploading(false);
+      const token = localStorage.getItem('authToken');
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/api/users/profile/picture`, 
+        formData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log("Upload response:", response.data);
+      
+      if (response.data) {
+        // Update the user in context with the new profile picture URL
+        updateUserInContext({
+          ...currentUser,
+          profilePicture: response.data.profilePicture
+        });
+        
+        // Show success message and reset form state
+        setSuccessMessage('Profile picture updated successfully!');
+        setProfilePicture(null);
+        
+        // Set the new preview URL and reset error state
+        if (response.data.profilePicture) {
+          setPreviewUrl(`${IMAGE_BASE_URL}${response.data.profilePicture}`);
+          setImageError(false);
+        }
+      }
     } catch (error) {
-      setError('Failed to upload profile picture. Please try again.');
+      console.error('Error uploading profile picture:', error);
+      
+      // Enhanced error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+        setError(`Failed to upload: ${error.response.data.message || error.response.statusText}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error("Error request:", error.request);
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        // Something happened in setting up the request
+        setError('Failed to upload profile picture. Please try again.');
+      }
+    } finally {
       setUploading(false);
     }
   };
@@ -110,18 +173,56 @@ const EditProfile = () => {
       setSaving(true);
       setError('');
       
-      const updatedProfile = await updateUserProfile(profileData);
+      console.log("Updating profile data:", profileData);
       
-      // Update the user in context
-      updateUserInContext(updatedProfile);
+      const token = localStorage.getItem('authToken');
       
-      setSuccessMessage('Profile updated successfully!');
-      setSaving(false);
+      const response = await axios.put(
+        `${API_BASE_URL}/api/users/profile`,
+        profileData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
       
-      // Scroll to top to show the success message
-      window.scrollTo(0, 0);
+      console.log("Profile update response:", response.data);
+      
+      if (response.data) {
+        // Update the user in context with the full updated user data
+        updateUserInContext({
+          ...currentUser,
+          fullName: response.data.fullName,
+          bio: response.data.bio
+        });
+        
+        setSuccessMessage('Profile updated successfully!');
+        
+        // Scroll to top to show the success message
+        window.scrollTo(0, 0);
+        
+        // Navigate back to profile after short delay
+        setTimeout(() => {
+          navigate('/profile');
+        }, 2000);
+      }
     } catch (error) {
-      setError('Failed to update profile. Please try again.');
+      console.error('Error updating profile:', error);
+      
+      // Enhanced error handling
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+        setError(`Failed to update profile: ${error.response.data.message || error.response.statusText}`);
+      } else if (error.request) {
+        console.error("Error request:", error.request);
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        setError('Failed to update profile. Please try again.');
+      }
+    } finally {
       setSaving(false);
     }
   };
@@ -137,113 +238,207 @@ const EditProfile = () => {
   }
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col md={8}>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="mb-0">Edit Profile</h2>
-            <Button as={Link} to="/account-settings" variant="outline-secondary">
-              <FaCog className="me-2" />
-              Account Settings
+    <div className="edit-profile-page">
+      {/* Header with gradient background */}
+      <div className="page-header py-4" style={{ 
+        background: 'linear-gradient(135deg, #4568dc 0%, #b06ab3 100%)',
+        color: 'white',
+        borderBottom: '1px solid rgba(0,0,0,0.1)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }}>
+        <Container>
+          <div className="d-flex align-items-center">
+            <Button 
+              variant="link" 
+              className="p-0 text-white me-3" 
+              onClick={() => navigate('/profile')}
+            >
+              <FaArrowLeft size={18} /> 
             </Button>
+            <div>
+              <h2 className="mb-0 fw-bold">Edit Profile</h2>
+              <p className="text-white-50 mb-0 mt-1">Update your personal information</p>
+            </div>
           </div>
-          
-          <Card className="shadow">
-            <Card.Header className="bg-primary text-white">
-              <h3 className="mb-0">Your Profile Information</h3>
-            </Card.Header>
-            <Card.Body className="p-4">
-              {error && <Alert variant="danger">{error}</Alert>}
-              {successMessage && <Alert variant="success">{successMessage}</Alert>}
-              
-              <Form onSubmit={handleSubmit}>
-                <Row className="mb-4">
-                  <Col md={4} className="d-flex flex-column align-items-center">
-                    <div className="position-relative mb-3">
+        </Container>
+      </div>
+      
+      <Container className="py-5">
+        {error && (
+          <Alert variant="danger" className="d-flex align-items-center mb-4 shadow-sm">
+            <FaExclamationTriangle className="me-2" />
+            <div>{error}</div>
+          </Alert>
+        )}
+        
+        {successMessage && (
+          <Alert variant="success" className="mb-4 shadow-sm">
+            {successMessage}
+          </Alert>
+        )}
+        
+        <Row className="justify-content-center">
+          <Col md={10} lg={8}>
+            <Card className="border-0 shadow">
+              <Card.Body className="p-md-5 p-4">
+                <Form onSubmit={handleSubmit}>
+                  <div className="text-center mb-5">
+                    <div className="position-relative d-inline-block">
                       <img 
-                        src={previewUrl || 'https://via.placeholder.com/150'} 
+                        src={getImageSrc()}
                         alt="Profile" 
-                        className="rounded-circle img-thumbnail"
-                        style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                        onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
+                        className="rounded-circle"
+                        style={{ 
+                          width: '150px', 
+                          height: '150px', 
+                          objectFit: 'cover',
+                          border: '4px solid #fff',
+                          boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
+                        }}
+                        onError={handleImageError}
                       />
+                      
+                      {/* Camera icon overlay for image upload */}
+                      <div className="position-absolute bottom-0 end-0">
+                        <Form.Label 
+                          htmlFor="profilePictureInput" 
+                          className="btn btn-primary rounded-circle p-2 m-1" 
+                          style={{ cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}
+                        >
+                          <FaCamera />
+                          <Form.Control
+                            id="profilePictureInput"
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePictureChange}
+                            style={{ display: 'none' }}
+                          />
+                        </Form.Label>
+                      </div>
                     </div>
                     
-                    <div className="d-grid gap-2">
-                      <Form.Control
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePictureChange}
-                        className="mb-2"
-                      />
-                      <Button
-                        variant="secondary"
-                        onClick={handlePictureUpload}
-                        disabled={!profilePicture || uploading}
-                        size="sm"
-                      >
-                        {uploading ? (
-                          <>
-                            <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                            <span className="ms-2">Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FaUpload className="me-2" />
-                            Upload Picture
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </Col>
+                    {/* Upload button only shown when a new image is selected */}
+                    {profilePicture && (
+                      <div className="mt-3">
+                        <Button
+                          variant="primary"
+                          onClick={handlePictureUpload}
+                          disabled={uploading}
+                          size="sm"
+                        >
+                          {uploading ? (
+                            <>
+                              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                              <span className="ms-2">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaUpload className="me-2" />
+                              Upload New Picture
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                
+                  <hr className="mb-4" />
                   
-                  <Col md={8}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Full Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="fullName"
-                        value={profileData.fullName}
-                        onChange={handleChange}
-                        placeholder="Your full name"
-                      />
-                    </Form.Group>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>Bio</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={4}
-                        name="bio"
-                        value={profileData.bio}
-                        onChange={handleChange}
-                        placeholder="Tell others a bit about yourself"
-                      />
-                    </Form.Group>
-                    
-                    <div className="d-flex mt-4 justify-content-between">
-                      <Button 
-                        variant="secondary" 
-                        onClick={() => navigate('/profile')}
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        variant="primary" 
-                        type="submit"
-                        disabled={saving}
-                      >
-                        {saving ? 'Saving...' : 'Save Changes'}
-                      </Button>
-                    </div>
-                  </Col>
-                </Row>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                  <h4 className="mb-4 fw-bold">Personal Information</h4>
+                  
+                  <Form.Group className="mb-4">
+                    <Form.Label>Full Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="fullName"
+                      value={profileData.fullName}
+                      onChange={handleChange}
+                      placeholder="Your full name"
+                      className="form-control-lg border-0 bg-light"
+                      style={{ boxShadow: 'none' }}
+                    />
+                  </Form.Group>
+                  
+                  <Form.Group className="mb-4">
+                    <Form.Label>Bio</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      name="bio"
+                      value={profileData.bio}
+                      onChange={handleChange}
+                      placeholder="Tell others about yourself, your interests, and your artistic style"
+                      className="form-control-lg border-0 bg-light"
+                      style={{ resize: 'none', boxShadow: 'none' }}
+                    />
+                    <Form.Text className="text-muted">
+                      Your bio will be displayed on your profile page
+                    </Form.Text>
+                  </Form.Group>
+                  
+                  <hr className="my-4" />
+                  
+                  <h4 className="mb-4 fw-bold">Account Information</h4>
+                  
+                  <Form.Group className="mb-4">
+                    <Form.Label>Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={currentUser.username}
+                      disabled
+                      className="form-control-lg border-0 bg-light"
+                      style={{ boxShadow: 'none' }}
+                    />
+                    <Form.Text className="text-muted">
+                      Username cannot be changed
+                    </Form.Text>
+                  </Form.Group>
+                  
+                  <Form.Group className="mb-5">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      value={currentUser.email}
+                      disabled
+                      className="form-control-lg border-0 bg-light"
+                      style={{ boxShadow: 'none' }}
+                    />
+                    <Form.Text className="text-muted">
+                      Email cannot be changed
+                    </Form.Text>
+                  </Form.Group>
+                  
+                  <div className="d-flex justify-content-between pt-2">
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={() => navigate('/profile')}
+                      className="px-4 py-2"
+                      style={{ borderRadius: '30px' }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="primary" 
+                      type="submit"
+                      disabled={saving}
+                      className="px-4 py-2"
+                      style={{ borderRadius: '30px' }}
+                    >
+                      {saving ? (
+                        <>
+                          <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                          <span className="ms-2">Saving...</span>
+                        </>
+                      ) : 'Save Changes'}
+                    </Button>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
