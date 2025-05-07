@@ -60,7 +60,10 @@ const Header = () => {
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
             {currentUser && (
-              <Nav.Link as={Link} to={`/${currentUser.username}/create-post`}>Create Post</Nav.Link>
+              <>
+                <Nav.Link as={Link} to={`/${currentUser.username}/create-post`}>Create Post</Nav.Link>
+                <Nav.Link as={Link} to={`/${currentUser.id}/lerning-dashboard`}>Learning Dashboard</Nav.Link>
+              </>
             )}
           </Nav>
           <Nav>

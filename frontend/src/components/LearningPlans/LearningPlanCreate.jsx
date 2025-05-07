@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createLearningPlan } from '../../services/learningPlanService';
 
-function LearningPlanCreate({ userId }) {
+
+function LearningPlanCreate() {
+    const navigate = useNavigate();
+    const { userid } = useParams();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [targetCompletionDate, setTargetCompletionDate] = useState('');
@@ -19,49 +23,132 @@ function LearningPlanCreate({ userId }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         const planData = {
             title,
             description,
-            targetCompletionDate,
-            topics: topics.map(t => ({ topicName: t }))
+            targetCompletionDate: new Date(targetCompletionDate).toISOString(),
+            topics: topics.filter(t => t.trim() !== '')
         };
 
         try {
-            await createLearningPlan(userId, planData);
-            alert("Learning Plan Created Successfully!");
+            await createLearningPlan(userid, planData);
+            alert('🎉 Learning Plan Created Successfully!');
+            // Redirect to dashboard with the user ID
+            navigate(`/${userid}/lerning-dashboard`);
         } catch (err) {
-            console.error(err);
-            alert("Error creating plan");
+            console.error('Error creating plan:', err);
+            alert('❌ Error creating plan: ' + (err.response?.data?.message || err.message));
         }
     };
 
     return (
-        <div className="container mt-4">
-            <h2>Create Learning Plan</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label>Title</label>
-                    <input type="text" className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} required/>
+        <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center"
+            style={{
+                backgroundImage: "url('/diary-planning.jpg')",
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+                height: "130vh",             // Full viewport height
+                width: "92vw",              // Full viewport width
+                display: "flex",
+            }}
+        >
+            <div className="container py-4">
+                <div className="row justify-content-center">
+                    <div className="col-md- col-lg-8">
+                        <div className="card shadow  bg-light bg-opacity-75 rounded-4 border-0">
+                            <div className="card-body p-5">
+                                <h2 className="text-center mb-4">🎨 Create Your Learning Plan</h2>
+
+                                <form onSubmit={handleSubmit}>
+                                    <div className="form-floating mb-3">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            id="title"
+                                            placeholder="Title"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            required
+                                        />
+                                        <label htmlFor="title">Plan Title</label>
+                                    </div>
+
+                                    <div className="form-floating mb-3">
+                                        <textarea
+                                            className="form-control"
+                                            id="description"
+                                            placeholder="Description"
+                                            style={{ height: '100px' }}
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            required
+                                        />
+                                        <label htmlFor="description">Plan Description</label>
+                                    </div>
+
+                                    <div className="form-floating mb-4">
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            id="completionDate"
+                                            placeholder="Target Date"
+                                            value={targetCompletionDate}
+                                            onChange={(e) => setTargetCompletionDate(e.target.value)}
+                                            required
+                                        />
+                                        <label htmlFor="completionDate">Target Completion Date</label>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label className="form-label fw-bold">Plan Topics</label>
+                                        {topics.map((topic, index) => (
+                                            <div className="input-group mb-2" key={index}>
+                                                <span className="input-group-text">📌</span>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder={`Topic ${index + 1}`}
+                                                    value={topic}
+                                                    onChange={(e) => handleTopicChange(index, e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-success btn-sm mt-2"
+                                            onClick={handleAddTopic}
+                                        >
+                                            ➕ Add Topic
+                                        </button>
+                                    </div>
+
+                                    <div className="d-grid mt-4">
+                                        <button type="submit" className="btn btn-primary btn-lg">
+                                            ✅ Save Learning Plan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        {/* <div className="mt-3 text-center">
+                            <button 
+                                type="button" 
+                                className="btn btn-info"
+                                onClick={() => navigate(`/${userid}/view-planlist`)}
+                            >
+                                👀 View All My Plans
+                            </button>
+                        </div> */}
+
+                        <div className="mt-4 text-center text-muted small">
+                            “A goal without a plan is just a wish.” – Antoine de Saint-Exupéry
+                        </div>
+                    </div>
                 </div>
-
-                <div className="form-group">
-                    <label>Description</label>
-                    <textarea className="form-control" value={description} onChange={(e) => setDescription(e.target.value)} required/>
-                </div>
-
-                <div className="form-group">
-                    <label>Target Completion Date</label>
-                    <input type="date" className="form-control" value={targetCompletionDate} onChange={(e) => setTargetCompletionDate(e.target.value)} required/>
-                </div>
-
-                <h5>Topics</h5>
-                {topics.map((topic, index) => (
-                    <input key={index} type="text" className="form-control mb-2" value={topic} onChange={(e) => handleTopicChange(index, e.target.value)} required/>
-                ))}
-                <button type="button" className="btn btn-secondary mt-2" onClick={handleAddTopic}>Add Topic</button>
-
-                <button type="submit" className="btn btn-primary mt-4">Create Plan</button>
-            </form>
+            </div>
         </div>
     );
 }
