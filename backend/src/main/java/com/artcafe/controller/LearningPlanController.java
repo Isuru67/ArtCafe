@@ -25,12 +25,14 @@ public class LearningPlanController {
     }
 
     @GetMapping("/{userId}")
-    public List<LearningPlan> getPlans(@PathVariable String userId) {
-        return learningPlanService.getPlansByUser(userId);
+    public List<LearningPlanDto> getPlans(@PathVariable String userId) {
+        List<LearningPlan> plans = learningPlanService.getPlansByUser(userId);
+        return plans.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
     }
 
     @PutMapping("/{planId}")
-    
     public LearningPlan updatePlan(@PathVariable String planId, @RequestBody LearningPlan plan) {
         return learningPlanService.updatePlan(planId, plan);
     }
@@ -45,30 +47,22 @@ public class LearningPlanController {
     public LearningPlan completeTopic(@PathVariable String topicId) {
         return learningPlanService.markTopicCompleted(topicId);
     }
-    @GetMapping("/{userId}")
-public List<LearningPlanDto> getPlansDto(@PathVariable String userId) {
-    List<LearningPlan> plans = learningPlanService.getPlansByUser(userId);
-    return plans.stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
-}
 
-private LearningPlanDto convertToDto(LearningPlan plan) {
-    return new LearningPlanDto(
-        plan.getId(),
-        plan.getTitle(),
-        plan.getDescription(),
-        plan.getTargetCompletionDate(),
-        plan.getCreatedBy(),
-        plan.getTopics().stream()
-            .map(topic -> new PlanTopicDto((String) topic.getId(), topic.getTopicName(), topic.isCompleted()))
-            .toList()
-    );
-}
-@GetMapping("/single/{planId}")
-public LearningPlan getPlanById(@PathVariable String planId) {
-    return learningPlanService.getPlanById(planId);
-}
+    @GetMapping("/single/{planId}")
+    public LearningPlan getPlanById(@PathVariable String planId) {
+        return learningPlanService.getPlanById(planId);
+    }
 
-
+    private LearningPlanDto convertToDto(LearningPlan plan) {
+        return new LearningPlanDto(
+            plan.getId(),
+            plan.getTitle(),
+            plan.getDescription(),
+            plan.getTargetCompletionDate(),
+            plan.getCreatedBy(),
+            plan.getTopics().stream()
+                .map(topic -> new PlanTopicDto((String) topic.getId(), topic.getTopicName(), topic.isCompleted()))
+                .toList()
+        );
+    }
 }
