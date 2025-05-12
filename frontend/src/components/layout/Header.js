@@ -59,7 +59,7 @@ const Header = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             {currentUser && (
-              <Nav.Link as={Link} to="/">My Posts</Nav.Link>
+              <Nav.Link as={Link} to={`/${currentUser.username}`}>My Posts</Nav.Link>
             )}
             {currentUser && (
               <Nav.Link as={Link} to={`/${currentUser.username}/create-post`}>Create Post</Nav.Link>
