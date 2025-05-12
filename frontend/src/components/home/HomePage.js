@@ -63,7 +63,7 @@ const HomePage = () => {
             </Col>
             <Col lg={6} className="text-center">
               <img 
-                src="/images/hero-illustration.png" 
+                src="../assets/images/home1.jpg" 
                 alt="Art Cafe Illustration" 
                 className="img-fluid" 
                 style={{ 
