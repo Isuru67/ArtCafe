@@ -1,0 +1,193 @@
+.edit-page-wrapper {
+    padding: 40px 0;
+    background-color: #f8f9fab1;
+    min-height: 90vh;
+}
+
+.edit-card {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.image-section {
+    background: linear-gradient(135deg, #5a53dc 0%, #3f3d56 100%);
+    min-height: 100%;
+}
+
+.form-image {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.form-image-content {
+    color: white;
+    text-align: center;
+}
+
+.overlay-content {
+    padding: 20px;
+}
+
+.overlay-content h3 {
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.overlay-content p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.card-body {
+    background: linear-gradient(to right bottom, #fff9f910, #f8f9fa3a);
+    padding: 2.5rem !important;
+}
+
+.form-control {
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.form-control:hover {
+    background-color: #ffffff;
+    border-color: #6c63ff;
+}
+
+.form-control:focus {
+    background-color: #ffffff;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 0.25rem rgba(110, 94, 251, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #1c168a, #675fd4);
+    box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #5a52cc;
+    border-color: #5a52cc;
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.input-group {
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.input-group:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.input-group .btn-danger {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 10px 20px;
+}
+
+.form-label {
+    color: #495057;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    font-weight: 300;
+}
+
+/* Button animations and styling */
+.btn {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.2);
+    transition: width 0.3s ease;
+}
+
+.btn:hover::after {
+    width: 100%;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #ab1212, #a94e4e);
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #305e8c, #4c77a1);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(134, 142, 150, 0.2);
+}
+
+/* Form group animations */
+.mb-3 {
+    transition: transform 0.3s ease;
+}
+
+.mb-3:hover {
+    transform: translateX(5px);
+}
+
+/* Topic items */
+.input-group .form-control {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+/* Card title */
+h2.text-center {
+    background: linear-gradient(45deg, #0d0a4c, #6960eb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+}
+
+/* Date input specific styling */
+input[type="date"] {
+    cursor: pointer;
+}
+
+/* Textarea specific styling */
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Loading state */
+.text-center {
+    padding: 2rem;
+    color: #201b80;
+    font-size: 1.2rem;
+    font-weight: 600;
+}

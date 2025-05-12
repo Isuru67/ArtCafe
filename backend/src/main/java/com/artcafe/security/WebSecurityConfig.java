@@ -64,9 +64,10 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/check-username", "/api/users/check-email").permitAll()
-                        .requestMatchers("/api/posts", "/api.posts/*").permitAll()
+                        .requestMatchers("/api/posts", "/api/posts/*").permitAll()
                         .requestMatchers("/api/users/*").permitAll()
                         .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/api/learning-plans/**").permitAll() // Add this line
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
