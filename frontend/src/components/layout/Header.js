@@ -58,7 +58,9 @@ const Header = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to={currentUser ? `/${currentUser.username}` : "/"}>My Posts</Nav.Link>
+            {currentUser && (
+              <Nav.Link as={Link} to="/">My Posts</Nav.Link>
+            )}
             {currentUser && (
               <Nav.Link as={Link} to={`/${currentUser.username}/create-post`}>Create Post</Nav.Link>
             )}
