@@ -70,12 +70,29 @@ const Header = () => {
                   <Button
                     ref={notificationTarget}
                     variant="light"
-                    className="notification-btn"
+                    className="notification-btn position-relative"
                     onClick={toggleNotifications}
+                    style={{ 
+                      color: '#e74c3c',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.color = '#c0392b'}
+                    onMouseOut={(e) => e.currentTarget.style.color = '#e74c3c'}
                   >
                     <FaBell />
                     {unreadCount > 0 && (
-                      <span className="notification-indicator"></span>
+                      <span className="notification-indicator position-absolute" 
+                        style={{
+                          top: '0',
+                          right: '0',
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: '#e74c3c',
+                          border: '2px solid #fff',
+                          display: 'inline-block'
+                        }}>
+                      </span>
                     )}
                   </Button>
                   
@@ -87,7 +104,7 @@ const Header = () => {
                     rootClose
                     onHide={() => setShowNotifications(false)}
                   >
-                    <Popover id="notification-popover" className="notification-popover">
+                    <Popover id="notification-popover" className="notification-popover shadow" style={{ width: '350px', border: 'none', padding: 0 }}>
                       <Popover.Body className="p-0">
                         <NotificationDropdown onNotificationsRead={handleNotificationsRead} />
                       </Popover.Body>
