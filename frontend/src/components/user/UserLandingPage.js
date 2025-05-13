@@ -201,7 +201,7 @@ const UserLandingPage = () => {
               <Card className="h-100 shadow-sm">
                 {post.imageUrl && (
                   <Link to={`/posts/${post.id}`}>
-                    <div className="post-image-container">
+                    <div className="post-image-container" style={{ height: '300px', overflow: 'hidden' }}>
                       {/* Add console log for debugging purposes */}
                       {console.log('Image URL:', post.imageUrl, 'Full path:', post.imageUrl.startsWith('data:') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`)}
                       <Card.Img 
@@ -209,6 +209,12 @@ const UserLandingPage = () => {
                         src={post.imageUrl.startsWith('data:') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`} 
                         className="post-image"
                         alt={post.imageName || 'Post image'}
+                        style={{ 
+                          height: '300px', 
+                          width: '100%', 
+                          objectFit: 'cover',
+                          objectPosition: 'center'
+                        }}
                         onError={(e) => {
                           console.error('Image failed to load:', e.target.src);
                           e.target.style.display = 'none';
