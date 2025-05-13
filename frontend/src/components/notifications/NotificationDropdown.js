@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ListGroup, Button, Spinner } from 'react-bootstrap';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, clearReadNotifications } from '../../services/notificationService';
 import NotificationItem from './NotificationItem';
+import { FaBell, FaCheck, FaTrash, FaChevronDown } from 'react-icons/fa';
 
 const NotificationDropdown = ({ onNotificationsRead }) => {
   const [notifications, setNotifications] = useState([]);
@@ -132,17 +133,36 @@ const NotificationDropdown = ({ onNotificationsRead }) => {
 
   return (
     <div className="notification-dropdown">
-      <div className="d-flex justify-content-between align-items-center p-2 border-bottom">
-        <h6 className="m-0">Notifications</h6>
+      <div className="d-flex justify-content-between align-items-center p-3" 
+        style={{ 
+          borderBottom: '1px solid #e0e0e0',
+          background: 'linear-gradient(135deg, #3498db, #2980b9)',
+          color: 'white',
+          borderTopLeftRadius: '4px', 
+          borderTopRightRadius: '4px'
+        }}>
+        <h6 className="m-0 d-flex align-items-center">
+          <FaBell className="me-2" /> Notifications
+        </h6>
         <div className="d-flex">
           {hasRead && (
             <Button 
               variant="link" 
               size="sm" 
-              className="text-decoration-none p-0 me-3" 
+              className="text-white d-flex align-items-center me-2" 
               onClick={handleClearReadNotifications}
               disabled={loadingAction}
+              style={{ 
+                textDecoration: 'none', 
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: 'rgba(255,255,255,0.1)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
             >
+              <FaTrash size={12} className="me-1" />
               {loadingAction ? 'Clearing...' : 'Clear read'}
             </Button>
           )}
@@ -150,10 +170,20 @@ const NotificationDropdown = ({ onNotificationsRead }) => {
             <Button 
               variant="link" 
               size="sm" 
-              className="text-decoration-none p-0" 
+              className="text-white d-flex align-items-center" 
               onClick={handleMarkAllAsRead}
               disabled={loadingAction}
+              style={{ 
+                textDecoration: 'none', 
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: 'rgba(255,255,255,0.1)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
             >
+              <FaCheck size={12} className="me-1" />
               {loadingAction ? 'Processing...' : 'Mark all read'}
             </Button>
           )}
@@ -162,7 +192,7 @@ const NotificationDropdown = ({ onNotificationsRead }) => {
       
       <ListGroup className="notification-list">
         {notifications.length === 0 ? (
-          <div className="text-center p-3 text-muted">
+          <div className="text-center p-4 text-muted">
             {loading ? 'Loading notifications...' : 'No notifications'}
           </div>
         ) : (
@@ -176,14 +206,32 @@ const NotificationDropdown = ({ onNotificationsRead }) => {
             ))}
             
             {hasMore && (
-              <div className="text-center p-2">
+              <div className="text-center p-2" style={{ backgroundColor: '#f8f9fa', borderTop: '1px solid #e0e0e0' }}>
                 <Button 
-                  variant="link" 
+                  variant="primary" 
                   size="sm" 
                   disabled={loading} 
                   onClick={fetchNotifications}
+                  style={{
+                    backgroundColor: '#3498db',
+                    borderColor: '#3498db',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '20px',
+                    padding: '4px 15px'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2980b9';
+                    e.currentTarget.style.borderColor = '#2980b9';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = '#3498db';
+                    e.currentTarget.style.borderColor = '#3498db';
+                  }}
                 >
-                  {loading ? <Spinner animation="border" size="sm" /> : 'Load more'}
+                  {loading ? 
+                    <Spinner animation="border" size="sm" /> : 
+                    <><span>Load more</span> <FaChevronDown size={10} className="ms-1" /></>
+                  }
                 </Button>
               </div>
             )}
