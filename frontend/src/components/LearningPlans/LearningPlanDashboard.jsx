@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import './LearningPlanDashboard.css';
 import { FaSearch, FaFilter, FaPalette, FaCode, FaMusic, FaBook, FaSortAmountDown, FaCalendarAlt, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 
 let motion = null;
@@ -61,23 +62,18 @@ function LearningPlanDashboard() {
         }
     };
 
-    const handleMarkComplete = async (topicId, planId) => {  // Add planId parameter
+    const handleMarkComplete = async (topicId) => {
         try {
-            const response = await completeTopic(topicId, userid);  // Add userid to the API call
-            if (response.status === 200) {
+            const response = await completeTopic(topicId, userid);
+            if (response.status >= 200 && response.status < 300) {
                 setShowConfetti(true);
                 setTimeout(() => setShowConfetti(false), 3000);
-                await fetchPlans();  // Refresh the plans after successful completion
-            } else {
-                console.error('Error marking topic complete:', response);
-                alert('Failed to mark topic as complete. Please try again.');
+                await fetchPlans();
             }
         } catch (err) {
             console.error('Error marking topic complete:', err);
-            if (err.response && err.response.status === 401) {
-                // Handle unauthorized error
-                alert('Please log in again to continue.');
-            } else {
+            // Don't show alert on auth errors
+            if (err.response?.status !== 401) {
                 alert('Failed to mark topic as complete. Please try again.');
             }
         }
@@ -227,28 +223,27 @@ function LearningPlanDashboard() {
                     
                     <div className="search-section mx-auto">
                         <div className="d-flex justify-content-center gap-5 flex-wrap">
-                            <div className="search-box-wrapper" mt-3>
-                                <FaSearch className="search-icon" />
+                            <div className="search-box-wrapper border rounded d-flex align-items-center px-3 py-2" 
+                                style={{
+                                    border: '2px solid #ddd',
+                                    borderRadius: '25px',
+                                    backgroundColor: '#fff',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}>
+                                <FaSearch className="search-icon text-muted me-2" />
                                 <input
                                     type="text"
                                     placeholder="Search plans..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="search-input"
+                                    className="search-input border-0"
+                                    style={{
+                                        outline: 'none',
+                                        backgroundColor: 'transparent',
+                                        width: '200px'
+                                    }}
                                 />
                             </div>
-{/*                             
-                            <select 
-                                value={filter}
-                                onChange={(e) => setFilter(e.target.value)}
-                                className="filter-select"
-                            >
-                                <option value="all">All Categories</option>
-                                <option value="art">Art</option>
-                                <option value="programming">Programming</option>
-                                <option value="music">Music</option>
-                                <option value="other">Other</option>
-                            </select> */}
 
                             {renderSortControls()}
                         </div>
@@ -361,7 +356,7 @@ function LearningPlanDashboard() {
                                                     {!topic.completed && (
                                                         <button
                                                             className="btn btn-sm btn-outline-success"
-                                                            onClick={() => handleMarkComplete(topic.id, plan.id)}
+                                                            onClick={() => handleMarkComplete(topic.id)}
                                                         >
                                                             Complete
                                                         </button>

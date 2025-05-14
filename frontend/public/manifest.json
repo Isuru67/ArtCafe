@@ -1,6 +1,6 @@
 {
-  "short_name": "Art Cafe",
-  "name": "Art Cafe - Social Media for Artists",
+  "short_name": "ArtCafe",
+  "name": "ArtCafe Learning Platform",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,12 +8,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "images/logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "images/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
