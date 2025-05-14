@@ -65,7 +65,7 @@ public class LearningPlanService {
     }
 
     // Mark a topic completed
-    public LearningPlan markTopicCompleted(String topicId) {
+    public LearningPlan markTopicCompleted(String topicId, String userId) {
         List<LearningPlan> allPlans = learningPlanRepository.findAll();
 
         for (LearningPlan plan : allPlans) {

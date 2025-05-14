@@ -11,6 +11,9 @@ function LearningPlanCreate() {
     const [targetCompletionDate, setTargetCompletionDate] = useState('');
     const [topics, setTopics] = useState(['']);
 
+    // Get current date in YYYY-MM-DD format for min attribute
+    const today = new Date().toISOString().split('T')[0];
+
     const handleAddTopic = () => {
         setTopics([...topics, '']);
     };
@@ -23,6 +26,16 @@ function LearningPlanCreate() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validate if selected date is in the future
+        const selectedDate = new Date(targetCompletionDate);
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+
+        if (selectedDate <= currentDate) {
+            alert('❌ Please select a future date for target completion');
+            return;
+        }
 
         const planData = {
             title,
@@ -95,6 +108,7 @@ function LearningPlanCreate() {
                                             placeholder="Target Date"
                                             value={targetCompletionDate}
                                             onChange={(e) => setTargetCompletionDate(e.target.value)}
+                                            min={today}
                                             required
                                         />
                                         <label htmlFor="completionDate">Target Completion Date</label>

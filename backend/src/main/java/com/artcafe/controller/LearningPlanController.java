@@ -45,7 +45,7 @@ public class LearningPlanController {
 
     @PutMapping("/topics/{topicId}/complete")
     public LearningPlan completeTopic(@PathVariable String topicId) {
-        return learningPlanService.markTopicCompleted(topicId);
+        return learningPlanService.markTopicCompleted(topicId, topicId);
     }
 
     @GetMapping("/single/{planId}")
