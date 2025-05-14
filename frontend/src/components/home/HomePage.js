@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Row, Col, Card, Button, Carousel } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Carousel, Form, InputGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaUsers, FaPalette, FaComments, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
+import { FaUsers, FaPalette, FaComments, FaSignInAlt, FaUserPlus, FaSearch } from 'react-icons/fa';
 import { AuthContext } from '../../context/AuthContext';
 import { getPosts } from '../../services/postService';
 import { IMAGE_BASE_URL } from '../../config';
@@ -9,6 +9,8 @@ import { IMAGE_BASE_URL } from '../../config';
 const HomePage = () => {
   const { currentUser } = useContext(AuthContext);
   const [featuredArtwork, setFeaturedArtwork] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     // Fetch a few posts to feature on the homepage
@@ -27,8 +29,83 @@ const HomePage = () => {
     fetchFeaturedArtwork();
   }, [currentUser]);
 
+  // Update search handler function
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const response = await getPosts(0, 10, searchQuery);
+      // Filter results to only show posts where title matches search query
+      const titleMatchResults = response.posts.filter(post => 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchResults(titleMatchResults);
+    } catch (error) {
+      console.error('Error searching posts:', error);
+    }
+  };
+
   return (
     <>
+      {/* Search Section */}
+      <section className="py-4 bg-white border-bottom">
+        <Container>
+          <Form onSubmit={handleSearch}>
+            <InputGroup className="mb-0">
+              <Form.Control
+                placeholder="Search artwork by title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                size="lg"
+              />
+              <Button variant="primary" type="submit">
+                <FaSearch /> Search
+              </Button>
+            </InputGroup>
+          </Form>
+        </Container>
+      </section>
+
+      {/* Updated Search Results Section */}
+      {searchResults.length > 0 && (
+        <section className="py-4">
+          <Container>
+            <h3 className="mb-4">Search Results for "{searchQuery}"</h3>
+            <Row>
+              {searchResults.map(artwork => (
+                <Col md={4} key={artwork.id} className="mb-4">
+                  <Card className="h-100 shadow-sm">
+                    <Card.Body>
+                      <Link to={`/posts/${artwork.id}`} className="text-decoration-none">
+                        <Card.Title className="text-primary">{artwork.title}</Card.Title>
+                      </Link>
+                      <Card.Text className="text-muted small">
+                        by {artwork.user.fullName || artwork.user.username}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Container>
+        </section>
+      )}
+
+      {/* Show "No results found" message when search yields no results */}
+      {searchQuery && searchResults.length === 0 && (
+        <section className="py-4">
+          <Container>
+            <div className="text-center text-muted">
+              <h4>No artwork titles found matching "{searchQuery}"</h4>
+            </div>
+          </Container>
+        </section>
+      )}
+
       {/* Hero Section */}
       <section className="hero-section text-white py-5" style={{
         background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
